@@ -1,0 +1,75 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["driverAdapters"]
+}
+
+datasource db {
+  provider = "postgresql"
+  // url property was removed in Prisma v7 and moved to prisma.config.ts
+}
+
+model Patient {
+  id            String         @id @default(cuid())
+  name          String
+  email         String?
+  phone         String?
+  dateOfBirth   DateTime
+  gender        Gender
+  address       String?
+  prescriptions Prescription[]
+  appointments  Appointment[]
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+}
+
+model Doctor {
+  id            String         @id @default(cuid())
+  name          String
+  email         String         @unique
+  specialty     String?
+  prescriptions Prescription[]
+  appointments  Appointment[]
+  createdAt     DateTime       @default(now())
+}
+
+model Appointment {
+  id              String            @id @default(cuid())
+  patient         Patient           @relation(fields: [patientId], references: [id])
+  patientId       String
+  doctor          Doctor            @relation(fields: [doctorId], references: [id])
+  doctorId        String
+  appointmentDate DateTime
+  timeSlot        String
+  type            String
+  status          AppointmentStatus @default(SCHEDULED)
+  notes           String?
+  createdAt       DateTime          @default(now())
+}
+
+enum AppointmentStatus {
+  SCHEDULED
+  COMPLETED
+  CANCELLED
+  NO_SHOW
+}
+
+model Prescription {
+  id           String   @id @default(cuid())
+  patient      Patient  @relation(fields: [patientId], references: [id])
+  patientId    String
+  doctor       Doctor   @relation(fields: [doctorId], references: [id])
+  doctorId     String
+  diagnosis    String
+  medications  Json     // Array of { name, dosage, frequency, duration }
+  instructions String?
+  createdAt    DateTime @default(now())
+}
+
+enum Gender {
+  MALE
+  FEMALE
+  OTHER
+}

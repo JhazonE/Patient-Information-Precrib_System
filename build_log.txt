@@ -1,0 +1,305 @@
+﻿
+> temp-app@0.1.0 build
+> next build
+
+Γû▓ Next.js 16.2.3 (Turbopack)
+- Environments: .env
+
+  Creating an optimized production build ...
+node.exe : (node:16484) [MODU
+LE_TYPELESS_PACKAGE_JSON] 
+Warning: Module type of file:
+///D:/Patient%20Information+P
+recrib_System/src/hero.ts?id=
+1776173378988 is not 
+specified and it doesn't 
+parse as CommonJS.
+At line:1 char:1
++ & "C:\Program 
+Files\nodejs/node.exe" 
+"C:\Program 
+Files\nodejs/node_mo ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~
+    + CategoryInfo           
+   : NotSpecified: ((node:1  
+  6484) [M...se as CommonJ   
+ S.:String) [], RemoteExc    
+eption
+    + FullyQualifiedErrorId  
+   : NativeCommandError
+ 
+Reparsing as ES module 
+because module syntax was 
+detected. This incurs a 
+performance overhead.
+To eliminate this warning, 
+add "type": "module" to 
+D:\Patient Information+Precri
+b_System\package.json.
+(Use `node --trace-warnings 
+...` to show where the 
+warning was created)
+
+> Build error occurred
+Error: Turbopack build 
+failed with 4 errors:
+./src/app/dashboard/page.tsx:
+17:26
+Expected '</', got 'jsx text'
+  [90m15 |[0m             <
+[33mCard[0m.[33mHeader[0m
+ className=[32m"pb-2"[0m>
+  [90m16 |[0m              
+ <h3 className=[32m"text-sm 
+font-semibold uppercase 
+tracking-wider text-primary"
+[0m>[33m...[0m
+[31m[1m>[0m [90m17 |[0m 
+            
+</[33mCardHeader[0m>
+  [90m   |[0m              
+            [31m[1m^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^[0m
+[31m[1m>[0m [90m18 |[0m 
+            
+<[33mCard[0m.[33mBody[0m>
+  [90m   |[0m 
+[31m[1m^^^^^^^^^^^^[0m
+  [90m19 |[0m              
+ <div 
+className=[32m"text-4xl 
+font-bold 
+italic"[0m>[35m12[0m</div>
+  [90m20 |[0m              
+ <p className=[32m"mt-1 
+text-xs text-default-400"[0m
+>[35m4[0m completed, 
+[35m8[0m pending</p>
+  [90m21 |[0m             <
+/[33mCard[0m.[33mBody[0m>
+
+Parsing ecmascript source 
+code failed
+
+
+./src/app/dashboard/patients/
+page.tsx:42:75
+Expected '</', got 'jsx text'
+  [90m40 |[0m         <[33
+mTable[0m.[33mRoot[0m 
+aria-label=[32m"Patients 
+Database"[0m className=[32m
+"overflow-hidden rounded-3xl 
+...[0m
+  [90m41 |[0m           <[
+33mTable[0m.[33mHeader[0m>
+[31m[1m>[0m [90m42 |[0m 
+            <[33mTable[0m.
+[33mColumn[0m className=[32
+m"font-extrabold"[0m>[33mPA
+TIENT[0m</[33mTableColumn[
+0m>
+  [90m   |[0m              
+                             
+                             
+   [31m[1m^^^^^^^^^^^^^^^^^
+^^[0m
+[31m[1m>[0m [90m43 |[0m 
+            <[33mTable[0m.
+[33mColumn[0m>[33mGENDER[0
+m</[33mTableColumn[0m>
+  [90m   |[0m 
+[31m[1m^^^^^^^^^^^^[0m
+  [90m44 |[0m             <
+[33mTable[0m.[33mColumn[0
+m>[33mDATE[0m [33mOF[0m 
+[33mBIRTH[0m</[33mTableColu
+mn[0m>
+  [90m45 |[0m             <
+[33mTable[0m.[33mColumn[0
+m align=[32m"end"[0m>[33mA
+CTIONS[0m</[33mTableColumn
+[0m>
+  [90m46 |[0m           </
+[33mTable[0m.[33mHeader[0m
+>
+
+Parsing ecmascript source 
+code failed
+
+
+./src/app/dashboard/prescript
+ions/new/page.tsx:4:1
+Export Divider doesn't exist 
+in target module
+  [90m 2 |[0m
+  [90m 3 |[0m 
+[36mimport[0m 
+[33mDashboardLayout[0m 
+[36mfrom[0m [32m"@/present
+ation/layouts/DashboardLayout
+"[0m;
+[31m[1m>[0m [90m 4 |[0m 
+[36mimport[0m { 
+  [90m   |[0m 
+[31m[1m^^^^^^^^[0m
+[31m[1m>[0m [90m 5 |[0m 
+  [33mCard[0m, 
+  [90m   |[0m 
+[31m[1m^^^^^^^^[0m
+[31m[1m>[0m [90m 6 |[0m 
+  [33mButton[0m, 
+  [90m   |[0m 
+[31m[1m^^^^^^^^^^[0m
+[31m[1m>[0m [90m 7 |[0m 
+  [33mInput[0m, 
+  [90m   |[0m 
+[31m[1m^^^^^^^^^[0m
+[31m[1m>[0m [90m 8 |[0m 
+  [33mDivider[0m
+  [90m   |[0m 
+[31m[1m^^^^^^^^^[0m
+[31m[1m>[0m [90m 9 |[0m 
+} [36mfrom[0m 
+[32m"@heroui/react"[0m;
+  [90m   |[0m [31m[1m^^^^
+^^^^^^^^^^^^^^^^^^^[0m
+  [90m10 |[0m 
+[36mimport[0m { 
+[33mPlusIcon[0m } 
+[36mfrom[0m [32m"@/present
+ation/components/icons"[0m;
+  [90m11 |[0m 
+[36mimport[0m 
+[33mReact[0m [36mfrom[0m 
+[32m"react"[0m;
+  [90m12 |[0m
+
+The export Divider was not 
+found in module [project]/nod
+e_modules/@heroui/react/dist/
+index.js [app-client] 
+(ecmascript).
+Did you mean to import 
+Slider?
+All exports of the module 
+are statically known (It 
+doesn't have dynamic 
+exports). So it's known 
+statically that the 
+requested export doesn't 
+exist.
+
+Import traces:
+  Client Component Browser:
+    ./src/app/dashboard/presc
+riptions/new/page.tsx 
+[Client Component Browser]
+    ./src/app/dashboard/presc
+riptions/new/page.tsx 
+[Server Component]
+
+  Client Component SSR:
+    ./src/app/dashboard/presc
+riptions/new/page.tsx 
+[Client Component SSR]
+    ./src/app/dashboard/presc
+riptions/new/page.tsx 
+[Server Component]
+
+
+./src/app/dashboard/prescript
+ions/new/page.tsx:4:1
+Export Divider doesn't exist 
+in target module
+  [90m 2 |[0m
+  [90m 3 |[0m 
+[36mimport[0m 
+[33mDashboardLayout[0m 
+[36mfrom[0m [32m"@/present
+ation/layouts/DashboardLayout
+"[0m;
+[31m[1m>[0m [90m 4 |[0m 
+[36mimport[0m { 
+  [90m   |[0m 
+[31m[1m^^^^^^^^[0m
+[31m[1m>[0m [90m 5 |[0m 
+  [33mCard[0m, 
+  [90m   |[0m 
+[31m[1m^^^^^^^^[0m
+[31m[1m>[0m [90m 6 |[0m 
+  [33mButton[0m, 
+  [90m   |[0m 
+[31m[1m^^^^^^^^^^[0m
+[31m[1m>[0m [90m 7 |[0m 
+  [33mInput[0m, 
+  [90m   |[0m 
+[31m[1m^^^^^^^^^[0m
+[31m[1m>[0m [90m 8 |[0m 
+  [33mDivider[0m
+  [90m   |[0m 
+[31m[1m^^^^^^^^^[0m
+[31m[1m>[0m [90m 9 |[0m 
+} [36mfrom[0m 
+[32m"@heroui/react"[0m;
+  [90m   |[0m [31m[1m^^^^
+^^^^^^^^^^^^^^^^^^^[0m
+  [90m10 |[0m 
+[36mimport[0m { 
+[33mPlusIcon[0m } 
+[36mfrom[0m [32m"@/present
+ation/components/icons"[0m;
+  [90m11 |[0m 
+[36mimport[0m 
+[33mReact[0m [36mfrom[0m 
+[32m"react"[0m;
+  [90m12 |[0m
+
+The export Divider was not 
+found in module [project]/nod
+e_modules/@heroui/react/dist/
+index.js [app-ssr] 
+(ecmascript).
+Did you mean to import 
+Slider?
+All exports of the module 
+are statically known (It 
+doesn't have dynamic 
+exports). So it's known 
+statically that the 
+requested export doesn't 
+exist.
+
+Import traces:
+  Client Component Browser:
+    ./src/app/dashboard/presc
+riptions/new/page.tsx 
+[Client Component Browser]
+    ./src/app/dashboard/presc
+riptions/new/page.tsx 
+[Server Component]
+
+  Client Component SSR:
+    ./src/app/dashboard/presc
+riptions/new/page.tsx 
+[Client Component SSR]
+    ./src/app/dashboard/presc
+riptions/new/page.tsx 
+[Server Component]
+
+
+    at <unknown> (./src/app/d
+ashboard/page.tsx:17:26)
+    at <unknown> (./src/app/d
+ashboard/patients/page.tsx:42
+:75)
+    at <unknown> (./src/app/d
+ashboard/prescriptions/new/pa
+ge.tsx:4:1)
+    at <unknown> (./src/app/d
+ashboard/prescriptions/new/pa
+ge.tsx:4:1)

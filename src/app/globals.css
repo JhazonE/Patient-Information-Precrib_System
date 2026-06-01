@@ -1,0 +1,220 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+@import "tailwindcss";
+@plugin "../hero.ts";
+
+@source "../../node_modules/@heroui/theme/dist/**/*.{js,ts,jsx,tsx}";
+
+/* ─── Design Tokens ───────────────────────────────────────── */
+:root {
+  /* sidebar */
+  --sidebar-bg: #0f1c33;
+  --sidebar-border: rgba(255,255,255,0.06);
+  --sidebar-text: #7a8ea8;
+  --sidebar-text-hover: #ffffff;
+  --sidebar-active-bg: rgba(59,130,246,0.18);
+  --sidebar-active-text: #60a5fa;
+  --sidebar-active-indicator: #3b82f6;
+  --sidebar-width: 258px;
+
+  /* topbar */
+  --topbar-bg: #ffffff;
+  --topbar-border: #e8edf4;
+  --topbar-height: 68px;
+
+  /* content */
+  --content-bg: #f3f6fb;
+  --card-bg: #ffffff;
+  --card-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 4px 16px rgba(0,0,0,0.04);
+  --card-shadow-hover: 0 4px 24px rgba(59,130,246,0.12), 0 1px 4px rgba(0,0,0,0.08);
+
+  /* accent */
+  --accent: #3b82f6;
+  --accent-glow: rgba(59,130,246,0.3);
+
+  /* text */
+  --text-primary: #1e293b;
+  --text-secondary: #64748b;
+  --text-muted: #94a3b8;
+
+  --background: #f3f6fb;
+  --foreground: #1e293b;
+}
+
+/* ─── Base ─────────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; }
+
+html, body {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  background: var(--background);
+  color: var(--foreground);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ─── Scrollbar ─────────────────────────────────────────────── */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(148,163,184,0.4); border-radius: 99px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(100,116,139,0.6); }
+
+/* ─── Tailwind theme bridge ─────────────────────────────────── */
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+}
+
+/* ─── Animations ─────────────────────────────────────────────── */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes pulse-slow {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.4; }
+}
+
+@keyframes slideInLeft {
+  from { transform: translateX(-100%); }
+  to   { transform: translateX(0); }
+}
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes slideInRight {
+  from { transform: translateX(100%); }
+  to   { transform: translateX(0); }
+}
+
+/* ─── Dark mode ─────────────────────────────────────────────── */
+[data-theme="dark"] {
+  --sidebar-bg: #0a1628;
+  --sidebar-border: rgba(255,255,255,0.06);
+  --sidebar-text: #7a8ea8;
+  --sidebar-text-hover: #ffffff;
+  --sidebar-active-bg: rgba(59,130,246,0.18);
+  --sidebar-active-text: #60a5fa;
+  --sidebar-active-indicator: #3b82f6;
+
+  --topbar-bg: #1e293b;
+  --topbar-border: #334155;
+
+  --content-bg: #0f172a;
+  --card-bg: #1e293b;
+  --card-shadow: 0 1px 3px rgba(0,0,0,0.4), 0 4px 16px rgba(0,0,0,0.3);
+  --card-shadow-hover: 0 4px 24px rgba(59,130,246,0.2), 0 1px 4px rgba(0,0,0,0.4);
+
+  --accent: #60a5fa;
+  --text-primary: #f1f5f9;
+  --text-secondary: #94a3b8;
+  --text-muted: #64748b;
+  --background: #0f172a;
+  --foreground: #f1f5f9;
+}
+
+/* Dark mode – override hardcoded light colors on inputs/tables/borders */
+[data-theme="dark"] input,
+[data-theme="dark"] select,
+[data-theme="dark"] textarea {
+  background: #0f172a !important;
+  border-color: #334155 !important;
+  color: #f1f5f9 !important;
+  color-scheme: dark;
+}
+[data-theme="dark"] input::placeholder,
+[data-theme="dark"] textarea::placeholder {
+  color: #475569 !important;
+}
+[data-theme="dark"] input[readonly] {
+  background: #1e293b !important;
+  color: #64748b !important;
+}
+
+/* ─── Hover card ────────────────────────────────────────────── */
+.rx-card {
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
+}
+.rx-card:hover {
+  box-shadow: var(--card-shadow-hover);
+  transform: translateY(-2px);
+}
+
+/* ─── Print styles ──────────────────────────────────────────── */
+@media print {
+  /* Hide all UI chrome */
+  aside,
+  header,
+  .no-print {
+    display: none !important;
+  }
+
+  /* Reset layout */
+  *,
+  html,
+  body {
+    background: white !important;
+    color: black !important;
+    box-shadow: none !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  html,
+  body {
+    height: auto !important;
+    overflow: visible !important;
+  }
+
+  /* Make the flex layout full-page */
+  body > div,
+  body > div > div {
+    display: block !important;
+    height: auto !important;
+    overflow: visible !important;
+  }
+
+  main {
+    padding: 8px !important;
+    overflow: visible !important;
+  }
+
+  /* Prescription slip print styles */
+  .print-prescription {
+    box-shadow: none !important;
+    border: 1px solid #ccc !important;
+    max-width: 100% !important;
+    border-radius: 4px !important;
+    padding: 24px 32px !important;
+    margin: 0 !important;
+    page-break-inside: avoid;
+  }
+
+  /* Preserve table row backgrounds */
+  table tr:nth-child(even) td {
+    background: #f9f9f9 !important;
+  }
+
+  /* Preserve colored elements */
+  .print-prescription [style*="background: #f0f7ff"],
+  .print-prescription [style*="background: #fffbeb"],
+  .print-prescription [style*="background: #f1f5f9"],
+  .print-prescription [style*="background: #f8fafc"] {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+}
+
+.animate-fade-up { animation: fadeUp 0.5s ease both; }
+.animate-fade-up-delay-1 { animation: fadeUp 0.5s 0.1s ease both; }
+.animate-fade-up-delay-2 { animation: fadeUp 0.5s 0.2s ease both; }
+.animate-fade-up-delay-3 { animation: fadeUp 0.5s 0.3s ease both; }
+.animate-slide-in-left { animation: slideInLeft 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+.animate-slide-in-right { animation: slideInRight 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+.animate-fade-in { animation: fadeIn 0.3s ease forwards; }
+.pulse-dot { animation: pulse-slow 2s ease-in-out infinite; }
