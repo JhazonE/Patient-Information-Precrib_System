@@ -4,6 +4,8 @@ import { getPatientPrescriptions } from "@/application/actions/prescriptionActio
 import { notFound } from "next/navigation";
 import Link from "next/link";
 
+export const dynamic = "force-dynamic";
+
 export default async function PatientDetailPage({
   params,
 }: {

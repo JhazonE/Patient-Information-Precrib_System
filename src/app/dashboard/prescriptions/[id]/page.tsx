@@ -1,5 +1,7 @@
 import DashboardLayout from "@/presentation/layouts/DashboardLayout";
 import { getPrescriptionById } from "@/application/actions/prescriptionActions";
+
+export const dynamic = "force-dynamic";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import PrintButton from "@/presentation/components/PrintButton";

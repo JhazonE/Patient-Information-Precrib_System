@@ -3,6 +3,8 @@ import PrescriptionForm from "@/presentation/components/PrescriptionForm";
 import { getPatients } from "@/application/actions/patientActions";
 import React from "react";
 
+export const dynamic = "force-dynamic";
+
 export default async function NewPrescriptionPage() {
   const patients = await getPatients();
 
