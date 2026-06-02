@@ -272,6 +272,31 @@ function DeleteDialog({
   );
 }
 
+/* ── stat icons ─────────────────────────────────────────────── */
+const IconUsers = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>
+    <path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+  </svg>
+);
+const IconCheck = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>
+  </svg>
+);
+const IconShield = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+  </svg>
+);
+const IconStethoscope = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <path d="M4.8 2.3A.3.3 0 1 0 5 2H4a2 2 0 0 0-2 2v5a6 6 0 0 0 6 6 6 6 0 0 0 6-6V4a2 2 0 0 0-2-2h-1a.2.2 0 1 0 .3.3"/>
+    <path d="M8 15v1a6 6 0 0 0 6 6v0a6 6 0 0 0 6-6v-4"/>
+    <circle cx="20" cy="10" r="2"/>
+  </svg>
+);
+
 /* ── main panel ─────────────────────────────────────────────── */
 export default function UsersPanel({ users }: { users: UserRow[] }) {
   const [drawerOpen, setDrawerOpen]     = useState(false);
@@ -317,59 +342,124 @@ export default function UsersPanel({ users }: { users: UserRow[] }) {
   const admins  = users.filter(u => u.role === "ADMIN").length;
   const doctors = users.filter(u => u.role === "DOCTOR").length;
 
+  const stats = [
+    { label: "Total Users",  value: total,   sub: "Registered accounts",    accent: "#6366f1", icon: <IconUsers /> },
+    { label: "Active",       value: active,  sub: "Currently active",       accent: "#10b981", icon: <IconCheck /> },
+    { label: "Admins",       value: admins,  sub: "Full system access",     accent: "#dc2626", icon: <IconShield /> },
+    { label: "Doctors",      value: doctors, sub: "Clinical access level",  accent: "#2563eb", icon: <IconStethoscope /> },
+  ];
+
   return (
-    <div className="animate-fade-up" style={{ display: "flex", flexDirection: "column", gap: "32px" }}>
+    <div style={{ display: "flex", flexDirection: "column", gap: "28px" }}>
 
       {/* ── Page header ── */}
-      <div className="flex items-end justify-between gap-4 flex-wrap">
+      <div className="animate-fade-up" style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", gap: "16px", flexWrap: "wrap" }}>
         <div>
-          <h1 className="text-4xl font-extrabold tracking-tighter text-foreground">User Accounts</h1>
-          <p className="text-zinc-500 mt-2 font-medium">Manage staff login accounts and access roles.</p>
+          <h1 style={{ fontSize: "22px", fontWeight: 800, color: "var(--text-primary)", margin: 0, letterSpacing: "-0.4px" }}>
+            User <span style={{ color: "var(--accent)" }}>Accounts</span>
+          </h1>
+          <p style={{ margin: "5px 0 0", fontSize: "13.5px", color: "var(--text-secondary)" }}>
+            Manage staff login accounts and access roles.
+          </p>
         </div>
         <button
           onClick={openCreate}
-          className="flex items-center gap-2 px-5 py-3 rounded-2xl text-sm font-bold text-white shadow-lg shadow-indigo-500/30 hover:opacity-90 transition-opacity"
-          style={{ background: "linear-gradient(135deg,#6366f1,#4f46e5)", border: "none", cursor: "pointer", flexShrink: 0 }}
+          style={{
+            display: "flex", alignItems: "center", gap: 8,
+            padding: "10px 20px", borderRadius: 12, border: "none",
+            background: "linear-gradient(135deg,#6366f1,#4f46e5)",
+            color: "#fff", fontSize: 13, fontWeight: 700,
+            cursor: "pointer", flexShrink: 0,
+            boxShadow: "0 4px 14px rgba(99,102,241,0.35)",
+            transition: "opacity 0.2s, transform 0.2s",
+          }}
+          onMouseEnter={e => { e.currentTarget.style.opacity = "0.9"; e.currentTarget.style.transform = "scale(0.98)"; }}
+          onMouseLeave={e => { e.currentTarget.style.opacity = "1"; e.currentTarget.style.transform = "scale(1)"; }}
         >
           <PlusIcon /> Add New User
         </button>
       </div>
 
       {/* ── Stats row ── */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        {[
-          { label: "Total Users",  value: total,   icon: "👥", bg: "#f5f3ff", color: "#6366f1" },
-          { label: "Active",       value: active,  icon: "✅", bg: "#ecfdf5", color: "#059669" },
-          { label: "Admins",       value: admins,  icon: "🛡️", bg: "#fef2f2", color: "#dc2626" },
-          { label: "Doctors",      value: doctors, icon: "🩺", bg: "#eff6ff", color: "#2563eb" },
-        ].map(s => (
-          <div key={s.label} style={{ background: s.bg, borderRadius: 16, padding: "18px 20px", border: `1px solid ${s.color}18` }}>
-            <div style={{ fontSize: 22, marginBottom: 6 }}>{s.icon}</div>
-            <div style={{ fontSize: 26, fontWeight: 900, color: s.color, lineHeight: 1 }}>{s.value}</div>
-            <div style={{ fontSize: 12, color: "#6b7280", fontWeight: 600, marginTop: 4 }}>{s.label}</div>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(180px, 1fr))", gap: "16px" }}>
+        {stats.map((s, i) => (
+          <div
+            key={s.label}
+            className="animate-fade-up"
+            style={{
+              animationDelay: `${i * 80}ms`,
+              background: "var(--card-bg)",
+              borderRadius: "16px",
+              padding: "24px",
+              boxShadow: "var(--card-shadow)",
+              border: "1px solid #e8edf4",
+              transition: "box-shadow 0.25s ease, transform 0.25s ease",
+              cursor: "default",
+            }}
+            onMouseEnter={e => {
+              (e.currentTarget as HTMLElement).style.boxShadow = "var(--card-shadow-hover)";
+              (e.currentTarget as HTMLElement).style.transform = "translateY(-2px)";
+            }}
+            onMouseLeave={e => {
+              (e.currentTarget as HTMLElement).style.boxShadow = "var(--card-shadow)";
+              (e.currentTarget as HTMLElement).style.transform = "translateY(0)";
+            }}
+          >
+            <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: "16px" }}>
+              <span style={{ fontSize: "12px", fontWeight: 700, color: "var(--text-secondary)", textTransform: "uppercase", letterSpacing: "0.8px" }}>
+                {s.label}
+              </span>
+              <div style={{
+                width: 38, height: 38, borderRadius: 10,
+                background: `${s.accent}18`,
+                display: "flex", alignItems: "center", justifyContent: "center",
+                color: s.accent,
+              }}>
+                {s.icon}
+              </div>
+            </div>
+            <div style={{ fontSize: "32px", fontWeight: 900, color: "var(--text-primary)", letterSpacing: "-1.5px", lineHeight: 1 }}>
+              {s.value}
+            </div>
+            <div style={{ marginTop: "8px", fontSize: "12.5px", color: "var(--text-secondary)" }}>
+              {s.sub}
+            </div>
           </div>
         ))}
       </div>
 
       {/* ── Users table ── */}
-      <div className="bg-white dark:bg-zinc-950 rounded-[1.5rem] border border-divider shadow-sm overflow-hidden">
-        {/* Table header */}
-        <div className="px-6 py-4 border-b border-divider flex items-center justify-between">
-          <p className="text-sm font-bold text-foreground">{total} {total === 1 ? "account" : "accounts"} registered</p>
+      <div className="animate-fade-up-delay-2" style={{
+        background: "var(--card-bg)",
+        borderRadius: "16px",
+        boxShadow: "var(--card-shadow)",
+        border: "1px solid #e8edf4",
+        overflow: "hidden",
+      }}>
+        <div style={{ padding: "16px 24px", borderBottom: "1px solid #e8edf4", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+          <p style={{ margin: 0, fontSize: "13px", fontWeight: 700, color: "var(--text-primary)" }}>
+            {total} {total === 1 ? "account" : "accounts"} registered
+          </p>
         </div>
 
         {users.length === 0 ? (
           <div style={{ padding: "60px 24px", textAlign: "center" }}>
-            <div style={{ fontSize: 40, marginBottom: 12 }}>👤</div>
-            <p className="text-base font-bold text-foreground mb-1">No user accounts yet</p>
-            <p className="text-sm text-zinc-500">Click "Add New User" to create the first account.</p>
+            <div style={{
+              width: 52, height: 52, borderRadius: 14, background: "#f1f5f9",
+              display: "flex", alignItems: "center", justifyContent: "center",
+              margin: "0 auto 14px", color: "var(--text-muted)",
+            }}>
+              <IconUsers />
+            </div>
+            <p style={{ margin: "0 0 4px", fontSize: 15, fontWeight: 700, color: "var(--text-primary)" }}>No user accounts yet</p>
+            <p style={{ margin: 0, fontSize: 13.5, color: "var(--text-secondary)" }}>Click &ldquo;Add New User&rdquo; to create the first account.</p>
           </div>
         ) : (
           <table style={{ width: "100%", borderCollapse: "collapse" }}>
             <thead>
-              <tr className="border-b border-divider">
+              <tr style={{ borderBottom: "1px solid #e8edf4" }}>
                 {["User", "Role", "Status", "Joined", "Last Login", ""].map(h => (
-                  <th key={h} style={{ padding: "11px 20px", textAlign: "left", fontSize: 11, fontWeight: 700, color: "#9ca3af", letterSpacing: "0.8px", textTransform: "uppercase", whiteSpace: "nowrap" }}>
+                  <th key={h} style={{ padding: "11px 20px", textAlign: "left", fontSize: 11, fontWeight: 700, color: "var(--text-muted)", letterSpacing: "0.8px", textTransform: "uppercase", whiteSpace: "nowrap" }}>
                     {h}
                   </th>
                 ))}
@@ -381,8 +471,8 @@ export default function UsersPanel({ users }: { users: UserRow[] }) {
                 return (
                   <tr
                     key={u.id}
-                    style={{ borderBottom: i < users.length - 1 ? "1px solid #f9fafb" : "none", transition: "background 0.15s" }}
-                    onMouseEnter={e => (e.currentTarget.style.background = "#fafafa")}
+                    style={{ borderBottom: i < users.length - 1 ? "1px solid #f3f6fb" : "none", transition: "background 0.15s" }}
+                    onMouseEnter={e => (e.currentTarget.style.background = "var(--content-bg)")}
                     onMouseLeave={e => (e.currentTarget.style.background = "transparent")}
                   >
                     {/* User */}
@@ -392,8 +482,8 @@ export default function UsersPanel({ users }: { users: UserRow[] }) {
                           {initials(u.name)}
                         </div>
                         <div>
-                          <div style={{ fontSize: 14, fontWeight: 700, color: "#111827", lineHeight: 1.2 }}>{u.name}</div>
-                          <div style={{ fontSize: 12, color: "#9ca3af", marginTop: 2, fontFamily: "monospace" }}>@{u.username}</div>
+                          <div style={{ fontSize: 14, fontWeight: 700, color: "var(--text-primary)", lineHeight: 1.2 }}>{u.name}</div>
+                          <div style={{ fontSize: 12, color: "var(--text-muted)", marginTop: 2, fontFamily: "monospace" }}>@{u.username}</div>
                         </div>
                       </div>
                     </td>
@@ -407,30 +497,44 @@ export default function UsersPanel({ users }: { users: UserRow[] }) {
                     <td style={{ padding: "14px 20px" }}>
                       <button
                         onClick={() => handleToggle(u)} disabled={isPending} title={u.isActive ? "Click to deactivate" : "Click to activate"}
-                        style={{ display: "inline-flex", alignItems: "center", gap: 6, background: u.isActive ? "#ecfdf5" : "#f9fafb", color: u.isActive ? "#059669" : "#9ca3af", fontSize: 12, fontWeight: 700, padding: "4px 12px", borderRadius: 99, border: `1px solid ${u.isActive ? "#6ee7b7" : "#e5e7eb"}`, cursor: "pointer" }}
+                        style={{ display: "inline-flex", alignItems: "center", gap: 6, background: u.isActive ? "#ecfdf5" : "var(--content-bg)", color: u.isActive ? "#059669" : "var(--text-muted)", fontSize: 12, fontWeight: 700, padding: "4px 12px", borderRadius: 99, border: `1px solid ${u.isActive ? "#6ee7b7" : "#e8edf4"}`, cursor: "pointer" }}
                       >
                         <span style={{ width: 6, height: 6, borderRadius: "50%", background: u.isActive ? "#10b981" : "#d1d5db", display: "inline-block" }} />
                         {u.isActive ? "Active" : "Inactive"}
                       </button>
                     </td>
                     {/* Joined */}
-                    <td style={{ padding: "14px 20px", fontSize: 13, color: "#6b7280", whiteSpace: "nowrap" }}>{fmtDate(u.createdAt)}</td>
+                    <td style={{ padding: "14px 20px", fontSize: 13, color: "var(--text-secondary)", whiteSpace: "nowrap" }}>{fmtDate(u.createdAt)}</td>
                     {/* Last login */}
-                    <td style={{ padding: "14px 20px", fontSize: 13, color: "#6b7280", whiteSpace: "nowrap" }}>
-                      {u.lastLoginAt ? fmtDate(u.lastLoginAt) : <span style={{ color: "#d1d5db" }}>Never</span>}
+                    <td style={{ padding: "14px 20px", fontSize: 13, color: "var(--text-secondary)", whiteSpace: "nowrap" }}>
+                      {u.lastLoginAt ? fmtDate(u.lastLoginAt) : <span style={{ color: "var(--text-muted)" }}>Never</span>}
                     </td>
                     {/* Actions */}
                     <td style={{ padding: "14px 20px" }}>
                       <div style={{ display: "flex", gap: 6, justifyContent: "flex-end" }}>
                         <button
                           onClick={() => openEdit(u)} title="Edit"
-                          className="flex items-center justify-center w-8 h-8 rounded-lg border border-divider bg-white hover:border-indigo-300 hover:text-indigo-600 text-zinc-400 transition-all"
-                          style={{ cursor: "pointer" }}
+                          style={{
+                            width: 32, height: 32, borderRadius: 8,
+                            border: "1px solid #e8edf4", background: "var(--card-bg)",
+                            display: "flex", alignItems: "center", justifyContent: "center",
+                            color: "var(--text-muted)", cursor: "pointer",
+                            transition: "border-color 0.15s, color 0.15s",
+                          }}
+                          onMouseEnter={e => { e.currentTarget.style.borderColor = "#a5b4fc"; e.currentTarget.style.color = "#6366f1"; }}
+                          onMouseLeave={e => { e.currentTarget.style.borderColor = "#e8edf4"; e.currentTarget.style.color = "var(--text-muted)"; }}
                         ><EditIcon /></button>
                         <button
                           onClick={() => setDeleteTarget(u)} title="Delete"
-                          className="flex items-center justify-center w-8 h-8 rounded-lg border border-divider bg-white hover:border-red-200 hover:text-red-500 text-zinc-400 transition-all"
-                          style={{ cursor: "pointer" }}
+                          style={{
+                            width: 32, height: 32, borderRadius: 8,
+                            border: "1px solid #e8edf4", background: "var(--card-bg)",
+                            display: "flex", alignItems: "center", justifyContent: "center",
+                            color: "var(--text-muted)", cursor: "pointer",
+                            transition: "border-color 0.15s, color 0.15s",
+                          }}
+                          onMouseEnter={e => { e.currentTarget.style.borderColor = "#fca5a5"; e.currentTarget.style.color = "#ef4444"; }}
+                          onMouseLeave={e => { e.currentTarget.style.borderColor = "#e8edf4"; e.currentTarget.style.color = "var(--text-muted)"; }}
                         ><TrashIcon /></button>
                       </div>
                     </td>
