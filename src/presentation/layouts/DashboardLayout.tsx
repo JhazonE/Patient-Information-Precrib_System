@@ -37,8 +37,9 @@ const NAV_GROUPS = [
   {
     group: "SYSTEM",
     items: [
-      { label: "Security",  href: "/dashboard/security",  icon: ShieldIcon   },
-      { label: "Settings",  href: "/dashboard/settings",  icon: SettingsIcon },
+      { label: "User Accounts", href: "/dashboard/users",    icon: UsersIcon    },
+      { label: "Security",      href: "/dashboard/security", icon: ShieldIcon   },
+      { label: "Settings",      href: "/dashboard/settings", icon: SettingsIcon },
     ],
   },
 ];

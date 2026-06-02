@@ -52,6 +52,7 @@ export async function createUser(data: {
         role: data.role,
       },
     });
+    revalidatePath("/dashboard/users");
     revalidatePath("/admin/users");
     return {};
   } catch {
@@ -87,6 +88,7 @@ export async function updateUser(
     if (data.password) updateData.password = await bcrypt.hash(data.password, 10);
 
     await prisma.user.update({ where: { id }, data: updateData });
+    revalidatePath("/dashboard/users");
     revalidatePath("/admin/users");
     return {};
   } catch {
@@ -97,6 +99,7 @@ export async function updateUser(
 export async function deleteUser(id: string): Promise<{ error?: string }> {
   try {
     await prisma.user.delete({ where: { id } });
+    revalidatePath("/dashboard/users");
     revalidatePath("/admin/users");
     return {};
   } catch {
@@ -110,6 +113,7 @@ export async function toggleUserStatus(
 ): Promise<{ error?: string }> {
   try {
     await prisma.user.update({ where: { id }, data: { isActive } });
+    revalidatePath("/dashboard/users");
     revalidatePath("/admin/users");
     return {};
   } catch {
