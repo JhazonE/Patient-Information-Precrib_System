@@ -1,13 +1,14 @@
 "use client";
 
 import React from "react";
-import { 
-  Link, 
+import {
+  Link,
   Button,
   Avatar,
   Dropdown,
   Separator
 } from "@heroui/react";
+import Logo from "@/presentation/components/Logo";
 import { 
   HomeIcon, 
   UsersIcon, 
@@ -37,14 +38,8 @@ export default function AdminLayout({
     <div className="flex h-screen bg-zinc-50 dark:bg-black overflow-hidden font-sans">
       {/* Sidebar */}
       <aside className="w-72 bg-white dark:bg-zinc-950 border-r border-divider flex flex-col h-full z-50">
-        <div className="p-8 pb-10 flex items-center gap-4">
-          <div className="flex h-12 w-12 items-center justify-center rounded-[1rem] bg-zinc-900 shadow-2xl shadow-black/20 font-black text-xl text-white">
-            P
-          </div>
-          <div>
-            <h2 className="text-xl font-black tracking-tighter text-foreground leading-none">PATIENT<span className="text-blue-600">CARE</span></h2>
-            <p className="text-[10px] font-black text-blue-600 uppercase tracking-[3px] mt-1 ml-0.5 opacity-80">Command Center</p>
-          </div>
+        <div className="p-8 pb-10">
+          <Logo size={40} variant="full" />
         </div>
 
         <nav className="flex-1 px-4 space-y-2 mt-4">

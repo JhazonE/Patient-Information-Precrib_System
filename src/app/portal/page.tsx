@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Logo from "@/presentation/components/Logo";
 
 export default function PortalLandingPage() {
   return (
@@ -14,19 +15,9 @@ export default function PortalLandingPage() {
         height: "64px",
         display: "flex", alignItems: "center", justifyContent: "space-between",
       }}>
-        <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-          <div style={{
-            width: "34px", height: "34px", borderRadius: "9px",
-            background: "linear-gradient(135deg, #3b82f6, #1d4ed8)",
-            display: "flex", alignItems: "center", justifyContent: "center",
-            fontWeight: 900, color: "#fff", fontSize: "16px",
-          }}>P</div>
-          <span style={{ fontWeight: 800, fontSize: "16px", color: "#1e293b", letterSpacing: "-0.3px" }}>
-            Patient<span style={{ color: "#3b82f6" }}>Care</span>
-          </span>
-        </div>
+        <Logo size={34} variant="full" />
         <Link
-          href="/dashboard"
+          href="/login"
           style={{
             fontSize: "13px", fontWeight: 600, color: "#64748b",
             textDecoration: "none", padding: "7px 16px", borderRadius: "8px",
@@ -300,17 +291,11 @@ export default function PortalLandingPage() {
         fontSize: "13px",
       }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "8px", marginBottom: "8px" }}>
-          <div style={{
-            width: "26px", height: "26px", borderRadius: "7px",
-            background: "linear-gradient(135deg, #3b82f6, #1d4ed8)",
-            display: "flex", alignItems: "center", justifyContent: "center",
-            fontWeight: 900, color: "#fff", fontSize: "13px",
-          }}>P</div>
-          <span style={{ fontWeight: 700, color: "#e2e8f0" }}>PatientCare Clinic</span>
+          <Logo size={26} variant="full" dark />
         </div>
         <div>© {new Date().getFullYear()} PatientCare. All rights reserved.</div>
         <div style={{ marginTop: "6px" }}>
-          <Link href="/dashboard" style={{ color: "#64748b", textDecoration: "none", fontSize: "12px" }}>
+          <Link href="/login" style={{ color: "#64748b", textDecoration: "none", fontSize: "12px" }}>
             Staff Portal
           </Link>
         </div>

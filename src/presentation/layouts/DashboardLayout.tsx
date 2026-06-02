@@ -14,6 +14,7 @@ import {
   ClipboardIcon,
   CalendarIcon,
 } from "@/presentation/components/icons";
+import Logo from "@/presentation/components/Logo";
 
 /* ─── Navigation config ──────────────────────────────────────── */
 const NAV_GROUPS = [
@@ -105,24 +106,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           flexShrink: 0,
           gap: "12px",
         }}>
-          {/* Logo mark */}
-          <div style={{
-            width: "36px", height: "36px", borderRadius: "10px", flexShrink: 0,
-            background: "linear-gradient(135deg, #3b82f6, #1d4ed8)",
-            display: "flex", alignItems: "center", justifyContent: "center",
-            fontWeight: 900, color: "#fff", fontSize: "17px", letterSpacing: "-1px",
-            boxShadow: "0 4px 12px rgba(59,130,246,0.5)",
-          }}>P</div>
-
-          {!collapsed && (
-            <div style={{ overflow: "hidden", whiteSpace: "nowrap" }}>
-              <div style={{ fontWeight: 800, fontSize: "15px", color: "#fff", letterSpacing: "-0.3px", lineHeight: 1 }}>
-                Patient<span style={{ color: "#60a5fa" }}>Care</span>
-              </div>
-              <div style={{ fontSize: "10px", color: "var(--sidebar-text)", fontWeight: 600, letterSpacing: "2px", marginTop: "3px" }}>
-                ADMIN PANEL
-              </div>
-            </div>
+          {collapsed ? (
+            <Logo size={36} variant="icon" />
+          ) : (
+            <Logo size={36} variant="full" dark />
           )}
         </div>
 
