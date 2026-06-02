@@ -15,6 +15,7 @@ import {
   CalendarIcon,
 } from "@/presentation/components/icons";
 import Logo from "@/presentation/components/Logo";
+import LogoutButton from "@/presentation/components/LogoutButton";
 
 /* ─── Navigation config ──────────────────────────────────────── */
 const NAV_GROUPS = [
@@ -325,6 +326,18 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               <div style={{ fontSize: "10.5px", color: "var(--text-muted)" }}>Admin</div>
             </div>
           </div>
+
+          {/* Logout */}
+          <LogoutButton
+            variant="icon"
+            style={{
+              display: "flex", alignItems: "center", justifyContent: "center",
+              width: "38px", height: "38px", borderRadius: "9px",
+              border: "1px solid #fecaca", background: "#fff",
+              color: "#ef4444", cursor: "pointer", flexShrink: 0,
+              transition: "all 0.2s",
+            }}
+          />
         </header>
 
         {/* ─── Page content ────────────────────────────────────── */}

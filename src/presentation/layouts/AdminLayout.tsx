@@ -9,6 +9,7 @@ import {
   Separator
 } from "@heroui/react";
 import Logo from "@/presentation/components/Logo";
+import LogoutButton from "@/presentation/components/LogoutButton";
 import { 
   HomeIcon, 
   UsersIcon, 
@@ -64,7 +65,7 @@ export default function AdminLayout({
           })}
         </nav>
 
-        <div className="p-6">
+        <div className="p-6 space-y-2">
           <div className="bg-zinc-50 dark:bg-zinc-900 rounded-3xl p-4 flex items-center gap-3 border border-divider">
              <Avatar.Root className="h-10 w-10 ring-2 ring-primary ring-offset-2 ring-offset-background">
                 <Avatar.Image src="https://i.pravatar.cc/150?u=admin" className="rounded-full" />
@@ -75,6 +76,10 @@ export default function AdminLayout({
                <p className="text-[10px] font-medium text-zinc-500 truncate">admin@system.io</p>
              </div>
           </div>
+          <LogoutButton
+            variant="full"
+            className="w-full flex items-center gap-2 px-4 py-2.5 rounded-2xl text-sm font-semibold text-zinc-500 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/20 transition-all cursor-pointer border-0 bg-transparent"
+          />
         </div>
       </aside>
 

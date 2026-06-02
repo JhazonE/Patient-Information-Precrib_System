@@ -26,3 +26,8 @@ export async function loginAction(
 
   return { error: "Invalid username or password." };
 }
+
+export async function logoutAction() {
+  (await cookies()).delete("auth_session");
+  redirect("/login");
+}
