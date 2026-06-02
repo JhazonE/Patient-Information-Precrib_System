@@ -318,7 +318,7 @@ export default function UsersPanel({ users }: { users: UserRow[] }) {
   const doctors = users.filter(u => u.role === "DOCTOR").length;
 
   return (
-    <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
+    <div className="animate-fade-up" style={{ display: "flex", flexDirection: "column", gap: "32px" }}>
 
       {/* ── Page header ── */}
       <div className="flex items-end justify-between gap-4 flex-wrap">
