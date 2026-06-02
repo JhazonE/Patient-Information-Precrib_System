@@ -73,3 +73,22 @@ enum Gender {
   FEMALE
   OTHER
 }
+
+enum Role {
+  ADMIN
+  DOCTOR
+  STAFF
+}
+
+model User {
+  id          String    @id @default(cuid())
+  username    String    @unique
+  name        String
+  email       String?   @unique
+  password    String
+  role        Role      @default(STAFF)
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  lastLoginAt DateTime?
+}
