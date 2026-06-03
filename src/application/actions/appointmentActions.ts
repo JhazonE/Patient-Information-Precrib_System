@@ -5,12 +5,28 @@ import { prisma } from "@/infrastructure/db/database";
 
 const DOCTOR_ID = "cm00000000000000000000001";
 
+async function ensureDefaultDoctor() {
+  const exists = await prisma.doctor.findUnique({ where: { id: DOCTOR_ID } });
+  if (!exists) {
+    await prisma.doctor.create({
+      data: {
+        id:        DOCTOR_ID,
+        name:      "Dr. Smith",
+        email:     "dr.smith@patientcare.com",
+        specialty: "General Practitioner",
+      },
+    });
+  }
+}
+
 export async function createAppointment(formData: FormData) {
-  const patientId      = formData.get("patientId") as string;
+  const patientId       = formData.get("patientId")       as string;
   const appointmentDate = formData.get("appointmentDate") as string;
-  const timeSlot       = formData.get("timeSlot") as string;
-  const type           = formData.get("type") as string;
-  const notes          = formData.get("notes") as string;
+  const timeSlot        = formData.get("timeSlot")        as string;
+  const type            = formData.get("type")            as string;
+  const notes           = formData.get("notes")           as string;
+
+  await ensureDefaultDoctor();
 
   await prisma.appointment.create({
     data: {
@@ -63,6 +79,8 @@ export async function createAppointmentWithNewPatient(formData: FormData) {
   const fullName = [firstName.trim(), middleName.trim(), lastName.trim()]
     .filter(Boolean)
     .join(" ");
+
+  await ensureDefaultDoctor();
 
   let patient: any = null;
   if (email.trim()) {
