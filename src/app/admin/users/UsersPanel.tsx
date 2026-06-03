@@ -394,7 +394,7 @@ export default function UsersPanel({ users }: { users: UserRow[] }) {
       </div>
 
       {/* ── Stats row ── */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(180px, 1fr))", gap: "16px" }}>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "16px" }}>
         {stats.map((s, i) => (
           <div
             key={s.label}
@@ -468,97 +468,115 @@ export default function UsersPanel({ users }: { users: UserRow[] }) {
             <p style={{ margin: 0, fontSize: 13.5, color: "var(--text-secondary)" }}>Click &ldquo;Add New User&rdquo; to create the first account.</p>
           </div>
         ) : (
-          <table style={{ width: "100%", borderCollapse: "collapse" }}>
-            <thead>
-              <tr style={{ borderBottom: "1px solid #e8edf4" }}>
-                {["User", "Role", "Status", "Joined", "Last Login", ""].map(h => (
-                  <th key={h} style={{ padding: "11px 20px", textAlign: "left", fontSize: 11, fontWeight: 700, color: "var(--text-muted)", letterSpacing: "0.8px", textTransform: "uppercase", whiteSpace: "nowrap" }}>
-                    {h}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {users.map((u, i) => {
-                const rm = ROLE_META[u.role];
-                return (
-                  <tr
-                    key={u.id}
-                    style={{ borderBottom: i < users.length - 1 ? "1px solid #f3f6fb" : "none", transition: "background 0.15s" }}
-                    onMouseEnter={e => (e.currentTarget.style.background = "var(--content-bg)")}
-                    onMouseLeave={e => (e.currentTarget.style.background = "transparent")}
-                  >
-                    {/* User */}
-                    <td style={{ padding: "14px 20px" }}>
-                      <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                        <div style={{ width: 38, height: 38, borderRadius: "50%", background: avatarBg(u.id), display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13, fontWeight: 800, color: "#fff", flexShrink: 0 }}>
-                          {initials(u.name)}
-                        </div>
-                        <div>
-                          <div style={{ fontSize: 14, fontWeight: 700, color: "var(--text-primary)", lineHeight: 1.2 }}>{u.name}</div>
-                          <div style={{ fontSize: 12, color: "var(--text-muted)", marginTop: 2, fontFamily: "monospace" }}>@{u.username}</div>
-                        </div>
-                      </div>
-                    </td>
-                    {/* Role */}
-                    <td style={{ padding: "14px 20px" }}>
-                      <span style={{ display: "inline-block", background: rm.bg, color: rm.color, fontSize: 12, fontWeight: 700, padding: "4px 12px", borderRadius: 99, border: `1px solid ${rm.color}30` }}>
-                        {rm.label}
-                      </span>
-                    </td>
-                    {/* Status toggle */}
-                    <td style={{ padding: "14px 20px" }}>
-                      <button
-                        onClick={() => handleToggle(u)} disabled={isPending} title={u.isActive ? "Click to deactivate" : "Click to activate"}
-                        style={{ display: "inline-flex", alignItems: "center", gap: 6, background: u.isActive ? "#ecfdf5" : "var(--content-bg)", color: u.isActive ? "#059669" : "var(--text-muted)", fontSize: 12, fontWeight: 700, padding: "4px 12px", borderRadius: 99, border: `1px solid ${u.isActive ? "#6ee7b7" : "#e8edf4"}`, cursor: isPending ? "not-allowed" : "pointer", opacity: isPending ? 0.7 : 1 }}
-                      >
-                        {isPending
-                          ? <Spinner size={10} color={u.isActive ? "#059669" : "#9ca3af"} />
-                          : <span style={{ width: 6, height: 6, borderRadius: "50%", background: u.isActive ? "#10b981" : "#d1d5db", display: "inline-block" }} />
-                        }
-                        {u.isActive ? "Active" : "Inactive"}
-                      </button>
-                    </td>
-                    {/* Joined */}
-                    <td style={{ padding: "14px 20px", fontSize: 13, color: "var(--text-secondary)", whiteSpace: "nowrap" }}>{fmtDate(u.createdAt)}</td>
-                    {/* Last login */}
-                    <td style={{ padding: "14px 20px", fontSize: 13, color: "var(--text-secondary)", whiteSpace: "nowrap" }}>
-                      {u.lastLoginAt ? fmtDate(u.lastLoginAt) : <span style={{ color: "var(--text-muted)" }}>Never</span>}
-                    </td>
-                    {/* Actions */}
-                    <td style={{ padding: "14px 20px" }}>
-                      <div style={{ display: "flex", gap: 6, justifyContent: "flex-end" }}>
-                        <button
-                          onClick={() => openEdit(u)} title="Edit"
-                          style={{
-                            width: 32, height: 32, borderRadius: 8,
-                            border: "1px solid #e8edf4", background: "var(--card-bg)",
-                            display: "flex", alignItems: "center", justifyContent: "center",
-                            color: "var(--text-muted)", cursor: "pointer",
-                            transition: "border-color 0.15s, color 0.15s",
-                          }}
-                          onMouseEnter={e => { e.currentTarget.style.borderColor = "#a5b4fc"; e.currentTarget.style.color = "#6366f1"; }}
-                          onMouseLeave={e => { e.currentTarget.style.borderColor = "#e8edf4"; e.currentTarget.style.color = "var(--text-muted)"; }}
-                        ><EditIcon /></button>
-                        <button
-                          onClick={() => setDeleteTarget(u)} title="Delete"
-                          style={{
-                            width: 32, height: 32, borderRadius: 8,
-                            border: "1px solid #e8edf4", background: "var(--card-bg)",
-                            display: "flex", alignItems: "center", justifyContent: "center",
-                            color: "var(--text-muted)", cursor: "pointer",
-                            transition: "border-color 0.15s, color 0.15s",
-                          }}
-                          onMouseEnter={e => { e.currentTarget.style.borderColor = "#fca5a5"; e.currentTarget.style.color = "#ef4444"; }}
-                          onMouseLeave={e => { e.currentTarget.style.borderColor = "#e8edf4"; e.currentTarget.style.color = "var(--text-muted)"; }}
-                        ><TrashIcon /></button>
-                      </div>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
+          <div>
+            {/* Header */}
+            <div style={{
+              display: "grid",
+              gridTemplateColumns: "2fr 100px 120px 140px 140px 90px",
+              padding: "12px 24px",
+              background: "#f8fafc",
+              borderBottom: "1px solid #e8edf4",
+            }}>
+              {["User", "Role", "Status", "Joined", "Last Login", ""].map(h => (
+                <div key={h} style={{
+                  fontSize: 11, fontWeight: 800, color: "#94a3b8",
+                  textTransform: "uppercase", letterSpacing: "0.8px",
+                  textAlign: h === "" ? "right" : "left",
+                  whiteSpace: "nowrap",
+                }}>
+                  {h}
+                </div>
+              ))}
+            </div>
+
+            {/* Rows */}
+            {users.map((u, i) => {
+              const rm = ROLE_META[u.role];
+              return (
+                <div
+                  key={u.id}
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns: "2fr 100px 120px 140px 140px 90px",
+                    padding: "14px 24px",
+                    alignItems: "center",
+                    borderBottom: i < users.length - 1 ? "1px solid #f1f5f9" : "none",
+                    transition: "background 0.15s",
+                  }}
+                  onMouseEnter={e => (e.currentTarget.style.background = "#fafbff")}
+                  onMouseLeave={e => (e.currentTarget.style.background = "transparent")}
+                >
+                  {/* User */}
+                  <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                    <div style={{ width: 38, height: 38, borderRadius: "50%", background: avatarBg(u.id), display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13, fontWeight: 800, color: "#fff", flexShrink: 0 }}>
+                      {initials(u.name)}
+                    </div>
+                    <div>
+                      <div style={{ fontSize: 14, fontWeight: 700, color: "var(--text-primary)", lineHeight: 1.2 }}>{u.name}</div>
+                      <div style={{ fontSize: 12, color: "var(--text-muted)", marginTop: 2, fontFamily: "monospace" }}>@{u.username}</div>
+                    </div>
+                  </div>
+
+                  {/* Role */}
+                  <div>
+                    <span style={{ display: "inline-block", background: rm.bg, color: rm.color, fontSize: 12, fontWeight: 700, padding: "4px 12px", borderRadius: 99, border: `1px solid ${rm.color}30` }}>
+                      {rm.label}
+                    </span>
+                  </div>
+
+                  {/* Status toggle */}
+                  <div>
+                    <button
+                      onClick={() => handleToggle(u)} disabled={isPending} title={u.isActive ? "Click to deactivate" : "Click to activate"}
+                      style={{ display: "inline-flex", alignItems: "center", gap: 6, background: u.isActive ? "#ecfdf5" : "var(--content-bg)", color: u.isActive ? "#059669" : "var(--text-muted)", fontSize: 12, fontWeight: 700, padding: "4px 12px", borderRadius: 99, border: `1px solid ${u.isActive ? "#6ee7b7" : "#e8edf4"}`, cursor: isPending ? "not-allowed" : "pointer", opacity: isPending ? 0.7 : 1 }}
+                    >
+                      {isPending
+                        ? <Spinner size={10} color={u.isActive ? "#059669" : "#9ca3af"} />
+                        : <span style={{ width: 6, height: 6, borderRadius: "50%", background: u.isActive ? "#10b981" : "#d1d5db", display: "inline-block" }} />
+                      }
+                      {u.isActive ? "Active" : "Inactive"}
+                    </button>
+                  </div>
+
+                  {/* Joined */}
+                  <div style={{ fontSize: 13, color: "var(--text-secondary)", whiteSpace: "nowrap" }}>{fmtDate(u.createdAt)}</div>
+
+                  {/* Last login */}
+                  <div style={{ fontSize: 13, color: "var(--text-secondary)", whiteSpace: "nowrap" }}>
+                    {u.lastLoginAt ? fmtDate(u.lastLoginAt) : <span style={{ color: "var(--text-muted)" }}>Never</span>}
+                  </div>
+
+                  {/* Actions */}
+                  <div style={{ display: "flex", gap: 6, justifyContent: "flex-end" }}>
+                    <button
+                      onClick={() => openEdit(u)} title="Edit"
+                      style={{
+                        width: 32, height: 32, borderRadius: 8,
+                        border: "1px solid #e8edf4", background: "var(--card-bg)",
+                        display: "flex", alignItems: "center", justifyContent: "center",
+                        color: "var(--text-muted)", cursor: "pointer",
+                        transition: "border-color 0.15s, color 0.15s",
+                      }}
+                      onMouseEnter={e => { e.currentTarget.style.borderColor = "#a5b4fc"; e.currentTarget.style.color = "#6366f1"; }}
+                      onMouseLeave={e => { e.currentTarget.style.borderColor = "#e8edf4"; e.currentTarget.style.color = "var(--text-muted)"; }}
+                    ><EditIcon /></button>
+                    <button
+                      onClick={() => setDeleteTarget(u)} title="Delete"
+                      style={{
+                        width: 32, height: 32, borderRadius: 8,
+                        border: "1px solid #e8edf4", background: "var(--card-bg)",
+                        display: "flex", alignItems: "center", justifyContent: "center",
+                        color: "var(--text-muted)", cursor: "pointer",
+                        transition: "border-color 0.15s, color 0.15s",
+                      }}
+                      onMouseEnter={e => { e.currentTarget.style.borderColor = "#fca5a5"; e.currentTarget.style.color = "#ef4444"; }}
+                      onMouseLeave={e => { e.currentTarget.style.borderColor = "#e8edf4"; e.currentTarget.style.color = "var(--text-muted)"; }}
+                    ><TrashIcon /></button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
         )}
       </div>
 
