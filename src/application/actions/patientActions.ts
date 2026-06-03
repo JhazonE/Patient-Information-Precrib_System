@@ -33,3 +33,24 @@ export async function getPatients() {
 export async function getPatientById(id: string) {
   return await patientRepo.findById(id);
 }
+
+export async function updatePatient(id: string, formData: FormData) {
+  const name    = formData.get("name")    as string;
+  const email   = formData.get("email")   as string;
+  const phone   = formData.get("phone")   as string;
+  const dob     = formData.get("dob")     as string;
+  const gender  = formData.get("gender")  as Gender;
+  const address = formData.get("address") as string;
+
+  await patientRepo.update(id, {
+    name,
+    email:       email   || null,
+    phone:       phone   || null,
+    dateOfBirth: new Date(dob),
+    gender:      gender  as any,
+    address:     address || null,
+  });
+
+  revalidatePath("/dashboard/patients");
+  revalidatePath(`/dashboard/patients/${id}`);
+}

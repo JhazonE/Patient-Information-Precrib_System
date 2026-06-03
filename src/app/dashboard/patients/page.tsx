@@ -2,7 +2,7 @@
 
 import DashboardLayout from "@/presentation/layouts/DashboardLayout";
 import { PlusIcon, SearchIcon } from "@/presentation/components/icons";
-import { createPatient, getPatients } from "@/application/actions/patientActions";
+import { createPatient, getPatients, updatePatient } from "@/application/actions/patientActions";
 import React from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
@@ -17,332 +17,7 @@ const getInitials = (name: string) => {
   return name.slice(0, 2).toUpperCase();
 };
 
-// ─── Philippine address selector (PSGC Cloud API) ────────────────────────────
-const PSGC = "https://psgc.cloud/api";
-
-interface GeoItem {
-  code: string;
-  name: string;
-}
-
-function PhAddressSelector({
-  onAddressChange,
-  resetKey,
-}: {
-  onAddressChange: (addr: string) => void;
-  resetKey: number;
-}) {
-  const [regions, setRegions] = React.useState<GeoItem[]>([]);
-  const [provinces, setProvinces] = React.useState<GeoItem[]>([]);
-  const [cities, setCities] = React.useState<GeoItem[]>([]);
-  const [barangays, setBarangays] = React.useState<GeoItem[]>([]);
-
-  const [regionCode, setRegionCode] = React.useState("");
-  const [provinceCode, setProvinceCode] = React.useState("");
-  const [cityCode, setCityCode] = React.useState("");
-  const [barangayCode, setBarangayCode] = React.useState("");
-  const [street, setStreet] = React.useState("");
-
-  const [loadingRegions, setLoadingRegions] = React.useState(true);
-  const [loadingProvinces, setLoadingProvinces] = React.useState(false);
-  const [loadingCities, setLoadingCities] = React.useState(false);
-  const [loadingBarangays, setLoadingBarangays] = React.useState(false);
-  const [apiError, setApiError] = React.useState(false);
-
-  // Reload regions and reset selections when resetKey changes
-  React.useEffect(() => {
-    setRegionCode(""); setProvinceCode(""); setCityCode(""); setBarangayCode("");
-    setProvinces([]); setCities([]); setBarangays([]);
-    setStreet("");
-  }, [resetKey]);
-
-  // Fetch regions once
-  React.useEffect(() => {
-    setLoadingRegions(true);
-    fetch(`${PSGC}/regions`)
-      .then((r) => r.json())
-      .then((data: GeoItem[]) =>
-        setRegions(data.sort((a, b) => a.name.localeCompare(b.name)))
-      )
-      .catch(() => setApiError(true))
-      .finally(() => setLoadingRegions(false));
-  }, []);
-
-  // Compose address whenever selections change
-  React.useEffect(() => {
-    const parts = [
-      street.trim(),
-      barangays.find((b) => b.code === barangayCode)?.name,
-      cities.find((c) => c.code === cityCode)?.name,
-      provinces.find((p) => p.code === provinceCode)?.name,
-      regions.find((r) => r.code === regionCode)?.name,
-    ].filter(Boolean);
-    onAddressChange(parts.join(", "));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [street, barangayCode, cityCode, provinceCode, regionCode]);
-
-  function selectRegion(code: string) {
-    setRegionCode(code);
-    setProvinceCode(""); setProvinces([]);
-    setCityCode(""); setCities([]);
-    setBarangayCode(""); setBarangays([]);
-    if (!code) return;
-
-    setLoadingProvinces(true);
-    fetch(`${PSGC}/regions/${code}/provinces`)
-      .then((r) => r.json())
-      .then((data: GeoItem[]) => {
-        const sorted = data.sort((a, b) => a.name.localeCompare(b.name));
-        setProvinces(sorted);
-        if (sorted.length === 0) {
-          // NCR / regions without provinces — load cities directly
-          setLoadingCities(true);
-          return fetch(`${PSGC}/regions/${code}/cities-municipalities`)
-            .then((r) => r.json())
-            .then((d: GeoItem[]) =>
-              setCities(d.sort((a, b) => a.name.localeCompare(b.name)))
-            )
-            .finally(() => setLoadingCities(false));
-        }
-      })
-      .catch(() => {})
-      .finally(() => setLoadingProvinces(false));
-  }
-
-  function selectProvince(code: string) {
-    setProvinceCode(code);
-    setCityCode(""); setCities([]);
-    setBarangayCode(""); setBarangays([]);
-    if (!code) return;
-
-    setLoadingCities(true);
-    fetch(`${PSGC}/provinces/${code}/cities-municipalities`)
-      .then((r) => r.json())
-      .then((data: GeoItem[]) =>
-        setCities(data.sort((a, b) => a.name.localeCompare(b.name)))
-      )
-      .catch(() => {})
-      .finally(() => setLoadingCities(false));
-  }
-
-  function selectCity(code: string) {
-    setCityCode(code);
-    setBarangayCode(""); setBarangays([]);
-    if (!code) return;
-
-    setLoadingBarangays(true);
-    fetch(`${PSGC}/cities-municipalities/${code}/barangays`)
-      .then((r) => r.json())
-      .then((data: GeoItem[]) =>
-        setBarangays(data.sort((a, b) => a.name.localeCompare(b.name)))
-      )
-      .catch(() => {})
-      .finally(() => setLoadingBarangays(false));
-  }
-
-  const inputBase: React.CSSProperties = {
-    height: "44px",
-    width: "100%",
-    borderRadius: "12px",
-    border: "1px solid #e2e8f0",
-    background: "#f8fafc",
-    padding: "0 14px",
-    fontSize: "13.5px",
-    color: "var(--text-primary)",
-    outline: "none",
-    transition: "all 0.2s",
-  };
-
-  const disabledStyle: React.CSSProperties = {
-    ...inputBase,
-    opacity: 0.45,
-    cursor: "not-allowed",
-    background: "#f1f5f9",
-  };
-
-  function focusStyle(el: HTMLInputElement | HTMLSelectElement) {
-    el.style.borderColor = "#3b82f6";
-    el.style.background = "#fff";
-    el.style.boxShadow = "0 0 0 4px rgba(59,130,246,0.1)";
-  }
-
-  function blurStyle(el: HTMLInputElement | HTMLSelectElement) {
-    el.style.borderColor = "#e2e8f0";
-    el.style.background = "#f8fafc";
-    el.style.boxShadow = "none";
-  }
-
-  // If API fails, show a plain text input
-  if (apiError) {
-    return (
-      <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-        <label style={{ fontSize: "13px", fontWeight: 700, color: "var(--text-secondary)" }}>
-          Address
-        </label>
-        <input
-          placeholder="Enter full address"
-          onChange={(e) => onAddressChange(e.target.value)}
-          style={inputBase}
-          onFocus={(e) => focusStyle(e.currentTarget)}
-          onBlur={(e) => blurStyle(e.currentTarget)}
-        />
-      </div>
-    );
-  }
-
-  return (
-    <div style={{ display: "flex", flexDirection: "column", gap: "14px" }}>
-      {/* Section label */}
-      <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-        <div
-          style={{
-            fontSize: "11px",
-            fontWeight: 800,
-            color: "#3b82f6",
-            textTransform: "uppercase",
-            letterSpacing: "0.8px",
-          }}
-        >
-          Address
-        </div>
-        <div style={{ flex: 1, height: "1px", background: "#e8edf4" }} />
-      </div>
-
-      {/* Street */}
-      <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-        <label style={{ fontSize: "13px", fontWeight: 700, color: "var(--text-secondary)" }}>
-          House / Unit No. & Street
-        </label>
-        <input
-          value={street}
-          onChange={(e) => setStreet(e.target.value)}
-          placeholder="e.g. 123 Rizal St., Purok 2"
-          style={inputBase}
-          onFocus={(e) => focusStyle(e.currentTarget)}
-          onBlur={(e) => blurStyle(e.currentTarget)}
-        />
-      </div>
-
-      {/* Region + Province */}
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
-        <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-          <label style={{ fontSize: "13px", fontWeight: 700, color: "var(--text-secondary)" }}>
-            Region
-          </label>
-          <select
-            value={regionCode}
-            onChange={(e) => selectRegion(e.target.value)}
-            style={loadingRegions ? disabledStyle : inputBase}
-            disabled={loadingRegions}
-            onFocus={(e) => focusStyle(e.currentTarget)}
-            onBlur={(e) => blurStyle(e.currentTarget)}
-          >
-            <option value="">
-              {loadingRegions ? "Loading regions..." : "Select Region"}
-            </option>
-            {regions.map((r) => (
-              <option key={r.code} value={r.code}>
-                {r.name}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-          <label style={{ fontSize: "13px", fontWeight: 700, color: "var(--text-secondary)" }}>
-            Province
-          </label>
-          <select
-            value={provinceCode}
-            onChange={(e) => selectProvince(e.target.value)}
-            style={
-              !regionCode || loadingProvinces || provinces.length === 0
-                ? disabledStyle
-                : inputBase
-            }
-            disabled={!regionCode || loadingProvinces || provinces.length === 0}
-            onFocus={(e) => focusStyle(e.currentTarget)}
-            onBlur={(e) => blurStyle(e.currentTarget)}
-          >
-            <option value="">
-              {loadingProvinces
-                ? "Loading..."
-                : !regionCode
-                ? "Select region first"
-                : provinces.length === 0 && regionCode
-                ? "N/A"
-                : "Select Province"}
-            </option>
-            {provinces.map((p) => (
-              <option key={p.code} value={p.code}>
-                {p.name}
-              </option>
-            ))}
-          </select>
-        </div>
-      </div>
-
-      {/* City + Barangay */}
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
-        <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-          <label style={{ fontSize: "13px", fontWeight: 700, color: "var(--text-secondary)" }}>
-            City / Municipality
-          </label>
-          <select
-            value={cityCode}
-            onChange={(e) => selectCity(e.target.value)}
-            style={
-              (!regionCode && !provinceCode) || loadingCities || cities.length === 0
-                ? disabledStyle
-                : inputBase
-            }
-            disabled={
-              (!regionCode && !provinceCode) || loadingCities || cities.length === 0
-            }
-            onFocus={(e) => focusStyle(e.currentTarget)}
-            onBlur={(e) => blurStyle(e.currentTarget)}
-          >
-            <option value="">
-              {loadingCities ? "Loading..." : "Select City / Municipality"}
-            </option>
-            {cities.map((c) => (
-              <option key={c.code} value={c.code}>
-                {c.name}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-          <label style={{ fontSize: "13px", fontWeight: 700, color: "var(--text-secondary)" }}>
-            Barangay
-          </label>
-          <select
-            value={barangayCode}
-            onChange={(e) => setBarangayCode(e.target.value)}
-            style={
-              !cityCode || loadingBarangays || barangays.length === 0
-                ? disabledStyle
-                : inputBase
-            }
-            disabled={!cityCode || loadingBarangays || barangays.length === 0}
-            onFocus={(e) => focusStyle(e.currentTarget)}
-            onBlur={(e) => blurStyle(e.currentTarget)}
-          >
-            <option value="">
-              {loadingBarangays ? "Loading..." : "Select Barangay"}
-            </option>
-            {barangays.map((b) => (
-              <option key={b.code} value={b.code}>
-                {b.name}
-              </option>
-            ))}
-          </select>
-        </div>
-      </div>
-    </div>
-  );
-}
+import { PhAddressSelector } from "@/presentation/components/PhAddressSelector";
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 export default function PatientsPage() {
@@ -353,6 +28,22 @@ export default function PatientsPage() {
   const [patients, setPatients] = React.useState<any[]>([]);
   const [loading, setLoading] = React.useState(true);
   const [submitting, setSubmitting] = React.useState(false);
+
+  // ── Edit drawer state ──────────────────────────────────────────────────────
+  const [editPatient, setEditPatient] = React.useState<any>(null);
+  const [isEditOpen, setIsEditOpen] = React.useState(false);
+  const [editFirstName, setEditFirstName] = React.useState("");
+  const [editMiddleName, setEditMiddleName] = React.useState("");
+  const [editLastName, setEditLastName] = React.useState("");
+  const [editDob, setEditDob] = React.useState("");
+  const [editGender, setEditGender] = React.useState("MALE");
+  const [editPhone, setEditPhone] = React.useState("");
+  const [editEmail, setEditEmail] = React.useState("");
+  const [editAddress, setEditAddress] = React.useState("");
+  const [editAddressKey, setEditAddressKey] = React.useState(0);
+  const [editAddressPicker, setEditAddressPicker] = React.useState(false);
+  const [editNameError, setEditNameError] = React.useState("");
+  const [editSubmitting, setEditSubmitting] = React.useState(false);
 
   // New patient form state
   const [firstName, setFirstName] = React.useState("");
@@ -403,6 +94,61 @@ export default function PatientsPage() {
     setNameError("");
     setAddressKey((k) => k + 1);
   }
+
+  function openEditDrawer(p: any) {
+    // Parse full name into parts
+    const parts = (p.name ?? "").trim().split(" ");
+    const fn  = parts[0] ?? "";
+    const ln  = parts.length > 1 ? parts[parts.length - 1] : "";
+    const mn  = parts.length > 2 ? parts.slice(1, -1).join(" ") : "";
+    setEditFirstName(fn);
+    setEditMiddleName(mn);
+    setEditLastName(ln);
+    setEditDob(p.dateOfBirth ? new Date(p.dateOfBirth).toISOString().split("T")[0] : "");
+    setEditGender(p.gender ?? "MALE");
+    setEditPhone(p.phone ?? "");
+    setEditEmail(p.email ?? "");
+    setEditAddress(p.address ?? "");
+    setEditAddressKey((k) => k + 1);
+    setEditAddressPicker(false);
+    setEditNameError("");
+    setEditPatient(p);
+    setIsEditOpen(true);
+  }
+
+  function closeEditDrawer() {
+    setIsEditOpen(false);
+    setEditPatient(null);
+    setEditNameError("");
+    setEditAddressPicker(false);
+  }
+
+  const handleUpdatePatient = async (formData: FormData) => {
+    const fn = editFirstName.trim();
+    const mn = editMiddleName.trim();
+    const ln = editLastName.trim();
+    if (!fn || !ln) {
+      setEditNameError("First name and last name are required.");
+      return;
+    }
+    const fullName = [fn, mn, ln].filter(Boolean).join(" ");
+    formData.set("name",    fullName);
+    formData.set("address", editAddress);
+    formData.set("dob",     editDob);
+    formData.set("gender",  editGender);
+
+    setEditSubmitting(true);
+    try {
+      await updatePatient(editPatient.id, formData);
+      closeEditDrawer();
+      await fetchPatients();
+      showSnack("Patient updated successfully.", "success");
+    } catch {
+      showSnack("Failed to update patient. Please try again.", "error");
+    } finally {
+      setEditSubmitting(false);
+    }
+  };
 
   const handleRegisterPatient = async (formData: FormData) => {
     const fn = firstName.trim();
@@ -1253,6 +999,7 @@ export default function PatientsPage() {
                     View
                   </Link>
                   <button
+                    onClick={() => openEditDrawer(patient)}
                     style={{
                       padding: "6px 12px",
                       borderRadius: "8px",
@@ -1281,6 +1028,229 @@ export default function PatientsPage() {
           })
         )}
       </div>
+      {/* ── Edit Patient Drawer ─────────────────────────────────────────── */}
+      {mounted && (
+        <AnimatePresence mode="wait">
+          {isEditOpen && editPatient && (
+            <div style={{ position: "fixed", inset: 0, zIndex: 1000, display: "flex", justifyContent: "flex-end" }}>
+              {/* Backdrop */}
+              <motion.div
+                key="edit-backdrop"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.3 }}
+                onClick={closeEditDrawer}
+                style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.4)", backdropFilter: "blur(4px)" }}
+              />
+
+              {/* Panel */}
+              <motion.div
+                key="edit-drawer"
+                initial={{ x: "100%" }}
+                animate={{ x: 0 }}
+                exit={{ x: "100%" }}
+                transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+                style={{
+                  position: "relative", width: "520px", maxWidth: "100%",
+                  background: "#fff", boxShadow: "-10px 0 50px rgba(0,0,0,0.2)",
+                  display: "flex", flexDirection: "column", height: "100vh",
+                  borderLeft: "1px solid #f1f5f9", zIndex: 1001,
+                }}
+              >
+                <form action={handleUpdatePatient} style={{ height: "100%", display: "flex", flexDirection: "column" }}>
+
+                  {/* Header */}
+                  <div style={{ padding: "28px 28px 22px", borderBottom: "1px solid #f1f5f9", flexShrink: 0 }}>
+                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "6px" }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                        <div style={{
+                          width: "36px", height: "36px", borderRadius: "9px",
+                          background: "#fef3c7", display: "flex", alignItems: "center", justifyContent: "center",
+                        }}>
+                          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                          </svg>
+                        </div>
+                        <h2 style={{ margin: 0, fontSize: "18px", fontWeight: 800, color: "var(--text-primary)" }}>
+                          Edit Patient
+                        </h2>
+                      </div>
+                      <button type="button" onClick={closeEditDrawer} style={{ border: "none", background: "transparent", cursor: "pointer", color: "var(--text-muted)", padding: "4px" }}>
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                          <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                        </svg>
+                      </button>
+                    </div>
+                    <p style={{ margin: 0, fontSize: "13px", color: "var(--text-muted)" }}>
+                      Editing record for <strong>{editPatient.name}</strong>
+                    </p>
+                  </div>
+
+                  {/* Body */}
+                  <div style={{ padding: "24px 28px", display: "flex", flexDirection: "column", gap: "20px", flex: 1, overflowY: "auto" }}>
+
+                    {/* Error */}
+                    {editNameError && (
+                      <div style={{ background: "#fef2f2", border: "1px solid #fecaca", borderRadius: "10px", padding: "10px 14px", fontSize: "13px", color: "#dc2626" }}>
+                        {editNameError}
+                      </div>
+                    )}
+
+                    {/* ── Full Name ── */}
+                    <div style={{ display: "flex", flexDirection: "column", gap: "14px" }}>
+                      <div style={{ fontSize: "11px", fontWeight: 800, color: "#3b82f6", textTransform: "uppercase", letterSpacing: "0.7px" }}>Full Name</div>
+                      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
+                        <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+                          <label style={{ fontSize: "13px", fontWeight: 700, color: "var(--text-secondary)" }}>First Name <span style={{ color: "#ef4444" }}>*</span></label>
+                          <input value={editFirstName} onChange={(e) => { setEditFirstName(e.target.value); setEditNameError(""); }}
+                            placeholder="Juan" style={inputStyle} onFocus={onFocus} onBlur={onBlur} />
+                        </div>
+                        <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+                          <label style={{ fontSize: "13px", fontWeight: 700, color: "var(--text-secondary)" }}>Middle Name</label>
+                          <input value={editMiddleName} onChange={(e) => setEditMiddleName(e.target.value)}
+                            placeholder="Santos" style={inputStyle} onFocus={onFocus} onBlur={onBlur} />
+                        </div>
+                      </div>
+                      <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+                        <label style={{ fontSize: "13px", fontWeight: 700, color: "var(--text-secondary)" }}>Last Name <span style={{ color: "#ef4444" }}>*</span></label>
+                        <input value={editLastName} onChange={(e) => { setEditLastName(e.target.value); setEditNameError(""); }}
+                          placeholder="Dela Cruz" style={inputStyle} onFocus={onFocus} onBlur={onBlur} />
+                      </div>
+                    </div>
+
+                    {/* ── Personal Details ── */}
+                    <div style={{ display: "flex", flexDirection: "column", gap: "14px" }}>
+                      <div style={{ fontSize: "11px", fontWeight: 800, color: "#3b82f6", textTransform: "uppercase", letterSpacing: "0.7px" }}>Personal Details</div>
+                      <div style={{ display: "grid", gridTemplateColumns: "1.4fr 0.7fr 1fr", gap: "12px" }}>
+                        <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+                          <label style={{ fontSize: "13px", fontWeight: 700, color: "var(--text-secondary)" }}>Date of Birth</label>
+                          <input type="date" value={editDob} onChange={(e) => setEditDob(e.target.value)}
+                            style={inputStyle} onFocus={onFocus} onBlur={onBlur} />
+                        </div>
+                        <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+                          <label style={{ fontSize: "13px", fontWeight: 700, color: "var(--text-secondary)" }}>Age</label>
+                          <div style={{
+                            height: "44px", borderRadius: "12px", border: "1px solid #e2e8f0",
+                            background: "#f1f5f9", padding: "0 16px", fontSize: "14px",
+                            fontWeight: 700, color: editDob ? "var(--text-primary)" : "#94a3b8",
+                            display: "flex", alignItems: "center",
+                          }}>
+                            {editDob ? `${calcAge(editDob)} yrs` : "—"}
+                          </div>
+                        </div>
+                        <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+                          <label style={{ fontSize: "13px", fontWeight: 700, color: "var(--text-secondary)" }}>Gender</label>
+                          <select value={editGender} onChange={(e) => setEditGender(e.target.value)}
+                            style={inputStyle} onFocus={onFocus} onBlur={onBlur as any}>
+                            <option value="MALE">Male</option>
+                            <option value="FEMALE">Female</option>
+                            <option value="OTHER">Other</option>
+                          </select>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* ── Contact ── */}
+                    <div style={{ display: "flex", flexDirection: "column", gap: "14px" }}>
+                      <div style={{ fontSize: "11px", fontWeight: 800, color: "#3b82f6", textTransform: "uppercase", letterSpacing: "0.7px" }}>Contact Information</div>
+                      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
+                        <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+                          <label style={{ fontSize: "13px", fontWeight: 700, color: "var(--text-secondary)" }}>Phone</label>
+                          <input name="phone" type="tel" value={editPhone} onChange={(e) => setEditPhone(e.target.value)}
+                            placeholder="+63 912 345 6789" style={inputStyle} onFocus={onFocus} onBlur={onBlur} />
+                        </div>
+                        <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+                          <label style={{ fontSize: "13px", fontWeight: 700, color: "var(--text-secondary)" }}>Email</label>
+                          <input name="email" type="email" value={editEmail} onChange={(e) => setEditEmail(e.target.value)}
+                            placeholder="juan@example.com" style={inputStyle} onFocus={onFocus} onBlur={onBlur} />
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* ── Address ── */}
+                    <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+                      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                        <div style={{ fontSize: "11px", fontWeight: 800, color: "#3b82f6", textTransform: "uppercase", letterSpacing: "0.7px" }}>Address</div>
+                        <button
+                          type="button"
+                          onClick={() => { setEditAddressPicker((v) => !v); setEditAddressKey((k) => k + 1); }}
+                          style={{
+                            fontSize: "11.5px", fontWeight: 600, color: editAddressPicker ? "#dc2626" : "#3b82f6",
+                            background: editAddressPicker ? "#fef2f2" : "#eff6ff",
+                            border: "none", borderRadius: "6px", padding: "3px 10px", cursor: "pointer",
+                          }}
+                        >
+                          {editAddressPicker ? "✕ Close picker" : "Use address picker"}
+                        </button>
+                      </div>
+
+                      {/* Direct text input (always visible) */}
+                      <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+                        <label style={{ fontSize: "13px", fontWeight: 700, color: "var(--text-secondary)" }}>Current Address</label>
+                        <input
+                          value={editAddress}
+                          onChange={(e) => setEditAddress(e.target.value)}
+                          placeholder="Enter full address"
+                          style={inputStyle}
+                          onFocus={onFocus}
+                          onBlur={onBlur}
+                        />
+                      </div>
+
+                      {/* PSGC picker (toggleable) */}
+                      {editAddressPicker && (
+                        <div style={{ display: "flex", flexDirection: "column", gap: "10px", paddingTop: "4px" }}>
+                          <p style={{ margin: 0, fontSize: "12px", color: "#64748b" }}>
+                            Selecting from the picker will replace the address above.
+                          </p>
+                          <PhAddressSelector
+                            onAddressChange={(addr) => { if (addr) setEditAddress(addr); }}
+                            resetKey={editAddressKey}
+                            compact
+                          />
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Footer */}
+                  <div style={{ padding: "20px 28px 28px", display: "flex", flexDirection: "column", gap: "10px", borderTop: "1px solid #f1f5f9", flexShrink: 0 }}>
+                    <button
+                      type="submit"
+                      disabled={editSubmitting}
+                      style={{
+                        width: "100%", height: "48px", borderRadius: "12px", border: "none",
+                        background: editSubmitting ? "#fcd34d" : "linear-gradient(135deg, #f59e0b, #d97706)",
+                        color: "#fff", fontWeight: 700, fontSize: "14px",
+                        cursor: editSubmitting ? "not-allowed" : "pointer",
+                        boxShadow: "0 4px 14px rgba(245,158,11,0.3)",
+                        transition: "all 0.2s", display: "flex", alignItems: "center", justifyContent: "center", gap: "8px",
+                      }}
+                    >
+                      {editSubmitting && <Spinner size={15} color="#fff" />}
+                      {editSubmitting ? "Saving..." : "Save Changes"}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={closeEditDrawer}
+                      style={{
+                        width: "100%", height: "44px", borderRadius: "12px",
+                        border: "1px solid #e2e8f0", background: "#fff",
+                        color: "#64748b", fontWeight: 600, fontSize: "14px", cursor: "pointer",
+                      }}
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </form>
+              </motion.div>
+            </div>
+          )}
+        </AnimatePresence>
+      )}
+
       <Snackbar snack={snack} onDismiss={dismiss} />
     </DashboardLayout>
   );
