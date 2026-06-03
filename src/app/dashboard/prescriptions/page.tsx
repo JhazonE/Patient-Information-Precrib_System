@@ -5,6 +5,7 @@ import Link from "next/link";
 import React from "react";
 import { PlusIcon, SearchIcon } from "@/presentation/components/icons";
 import { getPrescriptions } from "@/application/actions/prescriptionActions";
+import { PrescriptionRowSkeleton } from "@/presentation/components/Skeleton";
 
 export default function PrescriptionsPage() {
   const [prescriptions, setPrescriptions] = React.useState<any[]>([]);
@@ -182,16 +183,9 @@ export default function PrescriptionsPage() {
         </div>
 
         {loading ? (
-          <div
-            style={{
-              padding: "60px 24px",
-              textAlign: "center",
-              color: "var(--text-muted)",
-              fontSize: "14px",
-            }}
-          >
-            Loading prescription records...
-          </div>
+          <>
+            {Array.from({ length: 6 }).map((_, i) => <PrescriptionRowSkeleton key={i} />)}
+          </>
         ) : filtered.length === 0 ? (
           <div
             style={{

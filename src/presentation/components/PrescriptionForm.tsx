@@ -7,6 +7,7 @@ import { createPrescription } from "@/application/actions/prescriptionActions";
 import { Patient, MedicationItem } from "@/domain/entities";
 import { useRouter } from "next/navigation";
 import { useSnackbar, Snackbar } from "@/presentation/components/Snackbar";
+import { Spinner } from "@/presentation/components/Skeleton";
 
 // ─── Medication name input with localStorage autocomplete ────────────────────
 function MedicationNameInput({
@@ -715,7 +716,10 @@ export default function PrescriptionForm({ patients }: PrescriptionFormProps) {
                     transition: "all 0.2s",
                   }}
                 >
-                  {isSubmitting ? "Generating..." : "Generate Prescription"}
+                  <span style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "8px" }}>
+                    {isSubmitting && <Spinner size={15} color="#fff" />}
+                    {isSubmitting ? "Generating..." : "Generate Prescription"}
+                  </span>
                 </Button>
                 <Button
                   variant="ghost"

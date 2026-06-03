@@ -12,6 +12,7 @@ import {
 import { getPatients } from "@/application/actions/patientActions";
 import { PhAddressSelector } from "@/presentation/components/PhAddressSelector";
 import { useSnackbar, Snackbar } from "@/presentation/components/Snackbar";
+import { AppointmentRowSkeleton, Spinner } from "@/presentation/components/Skeleton";
 import { motion, AnimatePresence } from "framer-motion";
 
 // ─── Constants ───────────────────────────────────────────────────────────────
@@ -453,19 +454,20 @@ export default function AppointmentsPage() {
       {/* ── Appointments list ────────────────────────────────────────────── */}
       <div className="animate-fade-up-delay-2">
         {loading ? (
-          <div
-            style={{
-              background: "var(--card-bg)",
-              borderRadius: "16px",
-              padding: "60px 24px",
-              textAlign: "center",
-              color: "var(--text-muted)",
-              fontSize: "14px",
-              boxShadow: "var(--card-shadow)",
-              border: "1px solid #e8edf4",
-            }}
-          >
-            Loading appointments...
+          <div style={{
+            background: "var(--card-bg)", borderRadius: "16px",
+            boxShadow: "var(--card-shadow)", border: "1px solid #e8edf4", overflow: "hidden",
+          }}>
+            {/* Table header placeholder */}
+            <div style={{
+              display: "grid", gridTemplateColumns: "160px 1fr 1fr 130px 1fr 160px",
+              padding: "12px 24px", background: "#f8fafc", borderBottom: "1px solid #e8edf4",
+            }}>
+              {["Date & Time", "Patient", "Type", "Status", "Doctor", "Actions"].map((h) => (
+                <div key={h} style={{ fontSize: "11px", fontWeight: 800, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.8px" }}>{h}</div>
+              ))}
+            </div>
+            {Array.from({ length: 6 }).map((_, i) => <AppointmentRowSkeleton key={i} />)}
           </div>
         ) : filtered.length === 0 ? (
           <div
@@ -643,75 +645,28 @@ export default function AppointmentsPage() {
                   >
                     {appt.status === "SCHEDULED" && (
                       <>
-                        <button
-                          disabled={busy}
-                          onClick={() => changeStatus(appt.id, "COMPLETED")}
-                          style={{
-                            padding: "5px 10px",
-                            borderRadius: "7px",
-                            border: "none",
-                            background: "#f0fdf4",
-                            color: "#16a34a",
-                            fontWeight: 600,
-                            fontSize: "11.5px",
-                            cursor: busy ? "not-allowed" : "pointer",
-                            transition: "all 0.2s",
-                          }}
-                          onMouseEnter={(e) =>
-                            (e.currentTarget.style.background = "#dcfce7")
-                          }
-                          onMouseLeave={(e) =>
-                            (e.currentTarget.style.background = "#f0fdf4")
-                          }
-                        >
-                          Complete
-                        </button>
-                        <button
-                          disabled={busy}
-                          onClick={() => changeStatus(appt.id, "NO_SHOW")}
-                          style={{
-                            padding: "5px 10px",
-                            borderRadius: "7px",
-                            border: "none",
-                            background: "#fffbeb",
-                            color: "#d97706",
-                            fontWeight: 600,
-                            fontSize: "11.5px",
-                            cursor: busy ? "not-allowed" : "pointer",
-                            transition: "all 0.2s",
-                          }}
-                          onMouseEnter={(e) =>
-                            (e.currentTarget.style.background = "#fef3c7")
-                          }
-                          onMouseLeave={(e) =>
-                            (e.currentTarget.style.background = "#fffbeb")
-                          }
-                        >
-                          No-show
-                        </button>
-                        <button
-                          disabled={busy}
-                          onClick={() => changeStatus(appt.id, "CANCELLED")}
-                          style={{
-                            padding: "5px 10px",
-                            borderRadius: "7px",
-                            border: "none",
-                            background: "#fef2f2",
-                            color: "#dc2626",
-                            fontWeight: 600,
-                            fontSize: "11.5px",
-                            cursor: busy ? "not-allowed" : "pointer",
-                            transition: "all 0.2s",
-                          }}
-                          onMouseEnter={(e) =>
-                            (e.currentTarget.style.background = "#fee2e2")
-                          }
-                          onMouseLeave={(e) =>
-                            (e.currentTarget.style.background = "#fef2f2")
-                          }
-                        >
-                          Cancel
-                        </button>
+                        {[
+                          { label: "Complete", status: "COMPLETED", bg: "#f0fdf4", hbg: "#dcfce7", color: "#16a34a" },
+                          { label: "No-show",  status: "NO_SHOW",   bg: "#fffbeb", hbg: "#fef3c7", color: "#d97706" },
+                          { label: "Cancel",   status: "CANCELLED", bg: "#fef2f2", hbg: "#fee2e2", color: "#dc2626" },
+                        ].map(({ label, status, bg, hbg, color }) => (
+                          <button
+                            key={status}
+                            disabled={busy}
+                            onClick={() => changeStatus(appt.id, status)}
+                            style={{
+                              padding: "5px 10px", borderRadius: "7px", border: "none",
+                              background: bg, color, fontWeight: 600, fontSize: "11.5px",
+                              cursor: busy ? "not-allowed" : "pointer", transition: "all 0.2s",
+                              display: "flex", alignItems: "center", gap: "5px",
+                            }}
+                            onMouseEnter={(e) => { if (!busy) e.currentTarget.style.background = hbg; }}
+                            onMouseLeave={(e) => { if (!busy) e.currentTarget.style.background = bg; }}
+                          >
+                            {busy && <Spinner size={11} color={color} />}
+                            {label}
+                          </button>
+                        ))}
                       </>
                     )}
                     {(appt.status === "CANCELLED" || appt.status === "NO_SHOW") && (
@@ -719,23 +674,15 @@ export default function AppointmentsPage() {
                         disabled={busy}
                         onClick={() => changeStatus(appt.id, "SCHEDULED")}
                         style={{
-                          padding: "5px 10px",
-                          borderRadius: "7px",
-                          border: "none",
-                          background: "#eff6ff",
-                          color: "#2563eb",
-                          fontWeight: 600,
-                          fontSize: "11.5px",
-                          cursor: busy ? "not-allowed" : "pointer",
-                          transition: "all 0.2s",
+                          padding: "5px 10px", borderRadius: "7px", border: "none",
+                          background: "#eff6ff", color: "#2563eb", fontWeight: 600,
+                          fontSize: "11.5px", cursor: busy ? "not-allowed" : "pointer",
+                          transition: "all 0.2s", display: "flex", alignItems: "center", gap: "5px",
                         }}
-                        onMouseEnter={(e) =>
-                          (e.currentTarget.style.background = "#dbeafe")
-                        }
-                        onMouseLeave={(e) =>
-                          (e.currentTarget.style.background = "#eff6ff")
-                        }
+                        onMouseEnter={(e) => { if (!busy) e.currentTarget.style.background = "#dbeafe"; }}
+                        onMouseLeave={(e) => { if (!busy) e.currentTarget.style.background = "#eff6ff"; }}
                       >
+                        {busy && <Spinner size={11} color="#2563eb" />}
                         Reschedule
                       </button>
                     )}
@@ -1117,8 +1064,10 @@ export default function AppointmentsPage() {
                         cursor: submitting ? "not-allowed" : "pointer",
                         boxShadow: "0 4px 14px rgba(59,130,246,0.3)",
                         transition: "all 0.2s",
+                        display: "flex", alignItems: "center", justifyContent: "center", gap: "8px",
                       }}
                     >
+                      {submitting && <Spinner size={15} color="#fff" />}
                       {submitting ? "Booking..." : "Confirm Appointment"}
                     </button>
                     <button

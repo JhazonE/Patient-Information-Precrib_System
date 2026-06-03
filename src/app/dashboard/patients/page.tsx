@@ -7,6 +7,7 @@ import React from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { useSnackbar, Snackbar } from "@/presentation/components/Snackbar";
+import { PatientRowSkeleton, Spinner } from "@/presentation/components/Skeleton";
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 const getInitials = (name: string) => {
@@ -351,6 +352,7 @@ export default function PatientsPage() {
   const [mounted, setMounted] = React.useState(false);
   const [patients, setPatients] = React.useState<any[]>([]);
   const [loading, setLoading] = React.useState(true);
+  const [submitting, setSubmitting] = React.useState(false);
 
   // New patient form state
   const [firstName, setFirstName] = React.useState("");
@@ -416,6 +418,7 @@ export default function PatientsPage() {
     formData.set("name", fullName);
     formData.set("address", composedAddress);
 
+    setSubmitting(true);
     try {
       await createPatient(formData);
       closeDrawer();
@@ -424,6 +427,8 @@ export default function PatientsPage() {
     } catch (error) {
       console.error("Failed to register patient:", error);
       showSnack("Failed to register patient. Please try again.", "error");
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -931,27 +936,27 @@ export default function PatientsPage() {
                   >
                     <button
                       type="submit"
+                      disabled={submitting}
                       style={{
                         width: "100%",
                         height: "48px",
                         borderRadius: "12px",
                         border: "none",
-                        background: "#3b82f6",
+                        background: submitting ? "#93c5fd" : "#3b82f6",
                         color: "#fff",
                         fontWeight: 700,
                         fontSize: "14px",
-                        cursor: "pointer",
+                        cursor: submitting ? "not-allowed" : "pointer",
                         boxShadow: "0 4px 14px rgba(59,130,246,0.3)",
                         transition: "all 0.2s",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        gap: "8px",
                       }}
-                      onMouseEnter={(e) =>
-                        (e.currentTarget.style.background = "#2563eb")
-                      }
-                      onMouseLeave={(e) =>
-                        (e.currentTarget.style.background = "#3b82f6")
-                      }
                     >
-                      Add Patient
+                      {submitting && <Spinner size={15} color="#fff" />}
+                      {submitting ? "Registering..." : "Add Patient"}
                     </button>
                     <button
                       type="button"
@@ -1097,16 +1102,9 @@ export default function PatientsPage() {
         </div>
 
         {loading ? (
-          <div
-            style={{
-              padding: "60px 24px",
-              textAlign: "center",
-              color: "var(--text-muted)",
-              fontSize: "14px",
-            }}
-          >
-            Loading patients data...
-          </div>
+          <>
+            {Array.from({ length: 6 }).map((_, i) => <PatientRowSkeleton key={i} />)}
+          </>
         ) : filtered.length === 0 ? (
           <div
             style={{

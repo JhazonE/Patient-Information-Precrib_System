@@ -5,6 +5,7 @@ import Link from "next/link";
 import React from "react";
 import { getDashboardStats } from "@/application/actions/dashboardActions";
 import { getUpcomingAppointments } from "@/application/actions/appointmentActions";
+import { StatCardSkeleton, CardRowSkeleton } from "@/presentation/components/Skeleton";
 
 // ─── Stat card ────────────────────────────────────────────────────────────────
 function StatCard({
@@ -167,6 +168,7 @@ function AppointmentRow({ appt }: { appt: any }) {
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 export default function DashboardPage() {
+  const [loading, setLoading] = React.useState(true);
   const [dbStats, setDbStats] = React.useState({
     totalPatients: 0,
     patientsToday: 0,
@@ -183,7 +185,7 @@ export default function DashboardPage() {
     ]).then(([stats, appts]) => {
       setDbStats(stats);
       setUpcomingAppts(appts);
-    });
+    }).finally(() => setLoading(false));
   }, []);
 
   const stats = [
@@ -256,9 +258,10 @@ export default function DashboardPage() {
 
       {/* Stat cards */}
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))", gap: "16px", marginBottom: "32px" }}>
-        {stats.map((s) => (
-          <StatCard key={s.label} {...s} />
-        ))}
+        {loading
+          ? Array.from({ length: 4 }).map((_, i) => <StatCardSkeleton key={i} />)
+          : stats.map((s) => <StatCard key={s.label} {...s} />)
+        }
       </div>
 
       {/* Bottom grid */}
@@ -294,7 +297,11 @@ export default function DashboardPage() {
             </Link>
           </div>
 
-          {upcomingAppts.length === 0 ? (
+          {loading ? (
+            <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+              {Array.from({ length: 4 }).map((_, i) => <CardRowSkeleton key={i} />)}
+            </div>
+          ) : upcomingAppts.length === 0 ? (
             <div style={{
               textAlign: "center", padding: "40px 20px",
               color: "var(--text-muted)", fontSize: "13.5px",

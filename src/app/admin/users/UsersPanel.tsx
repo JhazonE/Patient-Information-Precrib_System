@@ -9,6 +9,7 @@ import {
   toggleUserStatus,
 } from "@/application/actions/userActions";
 import { useSnackbar, Snackbar } from "@/presentation/components/Snackbar";
+import { UserRowSkeleton, Spinner } from "@/presentation/components/Skeleton";
 
 /* ── helpers ────────────────────────────────────────────────── */
 const ROLE_META = {
@@ -509,9 +510,12 @@ export default function UsersPanel({ users }: { users: UserRow[] }) {
                     <td style={{ padding: "14px 20px" }}>
                       <button
                         onClick={() => handleToggle(u)} disabled={isPending} title={u.isActive ? "Click to deactivate" : "Click to activate"}
-                        style={{ display: "inline-flex", alignItems: "center", gap: 6, background: u.isActive ? "#ecfdf5" : "var(--content-bg)", color: u.isActive ? "#059669" : "var(--text-muted)", fontSize: 12, fontWeight: 700, padding: "4px 12px", borderRadius: 99, border: `1px solid ${u.isActive ? "#6ee7b7" : "#e8edf4"}`, cursor: "pointer" }}
+                        style={{ display: "inline-flex", alignItems: "center", gap: 6, background: u.isActive ? "#ecfdf5" : "var(--content-bg)", color: u.isActive ? "#059669" : "var(--text-muted)", fontSize: 12, fontWeight: 700, padding: "4px 12px", borderRadius: 99, border: `1px solid ${u.isActive ? "#6ee7b7" : "#e8edf4"}`, cursor: isPending ? "not-allowed" : "pointer", opacity: isPending ? 0.7 : 1 }}
                       >
-                        <span style={{ width: 6, height: 6, borderRadius: "50%", background: u.isActive ? "#10b981" : "#d1d5db", display: "inline-block" }} />
+                        {isPending
+                          ? <Spinner size={10} color={u.isActive ? "#059669" : "#9ca3af"} />
+                          : <span style={{ width: 6, height: 6, borderRadius: "50%", background: u.isActive ? "#10b981" : "#d1d5db", display: "inline-block" }} />
+                        }
                         {u.isActive ? "Active" : "Inactive"}
                       </button>
                     </td>
