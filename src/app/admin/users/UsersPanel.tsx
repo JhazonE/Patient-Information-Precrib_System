@@ -8,6 +8,7 @@ import {
   deleteUser,
   toggleUserStatus,
 } from "@/application/actions/userActions";
+import { useSnackbar, Snackbar } from "@/presentation/components/Snackbar";
 
 /* ── helpers ────────────────────────────────────────────────── */
 const ROLE_META = {
@@ -299,6 +300,7 @@ const IconStethoscope = () => (
 
 /* ── main panel ─────────────────────────────────────────────── */
 export default function UsersPanel({ users }: { users: UserRow[] }) {
+  const { showSnack, dismiss, snack }    = useSnackbar();
   const [drawerOpen, setDrawerOpen]     = useState(false);
   const [isEdit, setIsEdit]             = useState(false);
   const [editTarget, setEditTarget]     = useState<UserRow | null>(null);
@@ -325,16 +327,26 @@ export default function UsersPanel({ users }: { users: UserRow[] }) {
         : await createUser(payload);
       if (res.error) { setFormError(res.error); return; }
       closeDrawer();
+      showSnack(isEdit ? "User updated successfully." : "User account created.", "success");
     });
   };
 
   const handleDelete = () => {
     if (!deleteTarget) return;
-    startTransition(async () => { await deleteUser(deleteTarget.id); setDeleteTarget(null); });
+    const name = deleteTarget.name;
+    startTransition(async () => {
+      await deleteUser(deleteTarget.id);
+      setDeleteTarget(null);
+      showSnack(`${name} has been removed.`, "success");
+    });
   };
 
   const handleToggle = (u: UserRow) => {
-    startTransition(async () => { await toggleUserStatus(u.id, !u.isActive); });
+    const next = !u.isActive;
+    startTransition(async () => {
+      await toggleUserStatus(u.id, next);
+      showSnack(next ? `${u.name} activated.` : `${u.name} deactivated.`, "info");
+    });
   };
 
   const total   = users.length;
@@ -561,6 +573,8 @@ export default function UsersPanel({ users }: { users: UserRow[] }) {
       {deleteTarget && (
         <DeleteDialog user={deleteTarget} onClose={() => setDeleteTarget(null)} onConfirm={handleDelete} isPending={isPending} />
       )}
+
+      <Snackbar snack={snack} onDismiss={dismiss} />
     </div>
   );
 }

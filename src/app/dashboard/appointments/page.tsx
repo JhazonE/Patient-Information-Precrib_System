@@ -11,6 +11,7 @@ import {
 } from "@/application/actions/appointmentActions";
 import { getPatients } from "@/application/actions/patientActions";
 import { PhAddressSelector } from "@/presentation/components/PhAddressSelector";
+import { useSnackbar, Snackbar } from "@/presentation/components/Snackbar";
 import { motion, AnimatePresence } from "framer-motion";
 
 // ─── Constants ───────────────────────────────────────────────────────────────
@@ -104,6 +105,7 @@ function StatusBadge({ status }: { status: string }) {
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 export default function AppointmentsPage() {
+  const { showSnack, dismiss, snack } = useSnackbar();
   const [appointments, setAppointments] = React.useState<any[]>([]);
   const [patients, setPatients] = React.useState<any[]>([]);
   const [loading, setLoading] = React.useState(true);
@@ -197,8 +199,10 @@ export default function AppointmentsPage() {
       }
       closeDrawer();
       await load();
+      showSnack("Appointment booked successfully.", "success");
     } catch (e) {
       console.error(e);
+      showSnack("Failed to book appointment. Please try again.", "error");
     } finally {
       setSubmitting(false);
     }
@@ -209,6 +213,15 @@ export default function AppointmentsPage() {
     try {
       await updateAppointmentStatus(id, status);
       await load();
+      const labels: Record<string, string> = {
+        COMPLETED: "Appointment marked as completed.",
+        CANCELLED: "Appointment cancelled.",
+        NO_SHOW: "Appointment marked as no-show.",
+        SCHEDULED: "Appointment rescheduled.",
+      };
+      showSnack(labels[status] ?? "Status updated.", "success");
+    } catch {
+      showSnack("Failed to update status. Please try again.", "error");
     } finally {
       setUpdatingId(null);
     }
@@ -1133,6 +1146,8 @@ export default function AppointmentsPage() {
           )}
         </AnimatePresence>
       )}
+
+      <Snackbar snack={snack} onDismiss={dismiss} />
     </DashboardLayout>
   );
 }

@@ -6,6 +6,7 @@ import { createPatient, getPatients } from "@/application/actions/patientActions
 import React from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
+import { useSnackbar, Snackbar } from "@/presentation/components/Snackbar";
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 const getInitials = (name: string) => {
@@ -344,6 +345,7 @@ function PhAddressSelector({
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 export default function PatientsPage() {
+  const { showSnack, dismiss, snack } = useSnackbar();
   const [isOpen, setIsOpen] = React.useState(false);
   const [search, setSearch] = React.useState("");
   const [mounted, setMounted] = React.useState(false);
@@ -418,8 +420,10 @@ export default function PatientsPage() {
       await createPatient(formData);
       closeDrawer();
       await fetchPatients();
+      showSnack("Patient registered successfully.", "success");
     } catch (error) {
       console.error("Failed to register patient:", error);
+      showSnack("Failed to register patient. Please try again.", "error");
     }
   };
 
@@ -1279,6 +1283,7 @@ export default function PatientsPage() {
           })
         )}
       </div>
+      <Snackbar snack={snack} onDismiss={dismiss} />
     </DashboardLayout>
   );
 }

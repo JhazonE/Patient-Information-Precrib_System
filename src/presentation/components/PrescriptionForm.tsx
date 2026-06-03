@@ -6,6 +6,7 @@ import { PlusIcon, TrashIcon } from "@/presentation/components/icons";
 import { createPrescription } from "@/application/actions/prescriptionActions";
 import { Patient, MedicationItem } from "@/domain/entities";
 import { useRouter } from "next/navigation";
+import { useSnackbar, Snackbar } from "@/presentation/components/Snackbar";
 
 // ─── Medication name input with localStorage autocomplete ────────────────────
 function MedicationNameInput({
@@ -172,6 +173,7 @@ interface PrescriptionFormProps {
 
 export default function PrescriptionForm({ patients }: PrescriptionFormProps) {
   const router = useRouter();
+  const { showSnack, dismiss, snack } = useSnackbar();
   const [medications, setMedications] = useState<MedicationItem[]>([
     { name: "", dosage: "", frequency: "", duration: "" },
   ]);
@@ -218,15 +220,18 @@ export default function PrescriptionForm({ patients }: PrescriptionFormProps) {
         } catch {}
       }
 
-      router.push("/dashboard");
+      showSnack("Prescription created successfully.", "success");
+      setTimeout(() => router.push("/dashboard"), 1200);
     } catch (error) {
       console.error("Failed to create prescription:", error);
+      showSnack("Failed to create prescription. Please try again.", "error");
     } finally {
       setIsSubmitting(false);
     }
   };
 
   return (
+    <>
     <form
       onSubmit={handleSubmit}
       className="animate-fade-up max-w-5xl mx-auto space-y-8"
@@ -771,5 +776,7 @@ export default function PrescriptionForm({ patients }: PrescriptionFormProps) {
         </div>
       </div>
     </form>
+    <Snackbar snack={snack} onDismiss={dismiss} />
+    </>
   );
 }
