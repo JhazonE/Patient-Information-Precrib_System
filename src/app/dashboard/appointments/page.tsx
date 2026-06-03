@@ -5,10 +5,12 @@ import DashboardLayout from "@/presentation/layouts/DashboardLayout";
 import { CalendarIcon, PlusIcon, SearchIcon } from "@/presentation/components/icons";
 import {
   createAppointment,
+  createAppointmentWithNewPatient,
   getAppointments,
   updateAppointmentStatus,
 } from "@/application/actions/appointmentActions";
 import { getPatients } from "@/application/actions/patientActions";
+import { PhAddressSelector } from "@/presentation/components/PhAddressSelector";
 import { motion, AnimatePresence } from "framer-motion";
 
 // ─── Constants ───────────────────────────────────────────────────────────────
@@ -112,6 +114,11 @@ export default function AppointmentsPage() {
   const [updatingId, setUpdatingId] = React.useState<string | null>(null);
   const [mounted, setMounted] = React.useState(false);
 
+  // Drawer — new-patient mode
+  const [patientMode, setPatientMode] = React.useState<"existing" | "new">("existing");
+  const [newAddress, setNewAddress] = React.useState("");
+  const [addrKey, setAddrKey] = React.useState(0);
+
   async function load() {
     try {
       const [appts, pts] = await Promise.all([getAppointments(), getPatients()]);
@@ -171,12 +178,24 @@ export default function AppointmentsPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [appointments, activeFilter, search]);
 
+  function closeDrawer() {
+    setIsDrawerOpen(false);
+    setPatientMode("existing");
+    setNewAddress("");
+    setAddrKey((k) => k + 1);
+  }
+
   // ── Book appointment ──────────────────────────────────────────────────────
   async function handleBook(formData: FormData) {
     setSubmitting(true);
     try {
-      await createAppointment(formData);
-      setIsDrawerOpen(false);
+      if (patientMode === "new") {
+        formData.set("address", newAddress);
+        await createAppointmentWithNewPatient(formData);
+      } else {
+        await createAppointment(formData);
+      }
+      closeDrawer();
       await load();
     } catch (e) {
       console.error(e);
@@ -807,7 +826,7 @@ export default function AppointmentsPage() {
                       </div>
                       <button
                         type="button"
-                        onClick={() => setIsDrawerOpen(false)}
+                        onClick={closeDrawer}
                         style={{
                           border: "none",
                           background: "transparent",
@@ -847,20 +866,125 @@ export default function AppointmentsPage() {
                       overflowY: "auto",
                     }}
                   >
-                    {/* Patient */}
-                    <div style={{ display: "flex", flexDirection: "column", gap: "7px" }}>
-                      <label style={{ fontSize: "13px", fontWeight: 700, color: "var(--text-secondary)" }}>
-                        Patient <span style={{ color: "#ef4444" }}>*</span>
-                      </label>
-                      <select name="patientId" required style={inputStyle} onFocus={onFocus} onBlur={onBlur}>
-                        <option value="">Select patient...</option>
-                        {patients.map((p) => (
-                          <option key={p.id} value={p.id}>
-                            {p.name}
-                          </option>
-                        ))}
-                      </select>
+                    {/* Patient mode toggle */}
+                    <div style={{ display: "flex", gap: "8px" }}>
+                      {(["existing", "new"] as const).map((mode) => (
+                        <button
+                          key={mode}
+                          type="button"
+                          onClick={() => { setPatientMode(mode); setNewAddress(""); setAddrKey((k) => k + 1); }}
+                          style={{
+                            flex: 1, height: "38px", borderRadius: "9px",
+                            border: "1.5px solid",
+                            borderColor: patientMode === mode ? "#3b82f6" : "#e2e8f0",
+                            background: patientMode === mode ? "#eff6ff" : "#f8fafc",
+                            color: patientMode === mode ? "#1d4ed8" : "#64748b",
+                            fontWeight: patientMode === mode ? 700 : 500,
+                            fontSize: "13px", cursor: "pointer", transition: "all 0.15s",
+                          }}
+                        >
+                          {mode === "existing" ? "Existing Patient" : "New / Walk-in"}
+                        </button>
+                      ))}
                     </div>
+
+                    {/* ── Existing patient ── */}
+                    {patientMode === "existing" && (
+                      <div style={{ display: "flex", flexDirection: "column", gap: "7px" }}>
+                        <label style={{ fontSize: "13px", fontWeight: 700, color: "var(--text-secondary)" }}>
+                          Patient <span style={{ color: "#ef4444" }}>*</span>
+                        </label>
+                        <select name="patientId" required style={inputStyle} onFocus={onFocus} onBlur={onBlur}>
+                          <option value="">Select patient...</option>
+                          {patients.map((p) => (
+                            <option key={p.id} value={p.id}>{p.name}</option>
+                          ))}
+                        </select>
+                      </div>
+                    )}
+
+                    {/* ── New patient fields ── */}
+                    {patientMode === "new" && (
+                      <>
+                        {/* Name */}
+                        <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+                          <div style={{ fontSize: "11px", fontWeight: 800, color: "#3b82f6", textTransform: "uppercase", letterSpacing: "0.7px" }}>
+                            Patient Information
+                          </div>
+                          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px" }}>
+                            <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+                              <label style={{ fontSize: "12px", fontWeight: 700, color: "var(--text-secondary)" }}>
+                                First Name <span style={{ color: "#ef4444" }}>*</span>
+                              </label>
+                              <input name="firstName" required placeholder="Juan" style={inputStyle} onFocus={onFocus} onBlur={onBlur} />
+                            </div>
+                            <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+                              <label style={{ fontSize: "12px", fontWeight: 700, color: "var(--text-secondary)" }}>Middle Name</label>
+                              <input name="middleName" placeholder="Santos" style={inputStyle} onFocus={onFocus} onBlur={onBlur} />
+                            </div>
+                          </div>
+                          <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+                            <label style={{ fontSize: "12px", fontWeight: 700, color: "var(--text-secondary)" }}>
+                              Last Name <span style={{ color: "#ef4444" }}>*</span>
+                            </label>
+                            <input name="lastName" required placeholder="Dela Cruz" style={inputStyle} onFocus={onFocus} onBlur={onBlur} />
+                          </div>
+                        </div>
+
+                        {/* DOB + Gender */}
+                        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px" }}>
+                          <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+                            <label style={{ fontSize: "12px", fontWeight: 700, color: "var(--text-secondary)" }}>
+                              Date of Birth <span style={{ color: "#ef4444" }}>*</span>
+                            </label>
+                            <input name="dateOfBirth" type="date" required style={inputStyle} onFocus={onFocus} onBlur={onBlur} />
+                          </div>
+                          <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+                            <label style={{ fontSize: "12px", fontWeight: 700, color: "var(--text-secondary)" }}>Gender</label>
+                            <select name="gender" style={inputStyle} onFocus={onFocus} onBlur={onBlur}>
+                              <option value="MALE">Male</option>
+                              <option value="FEMALE">Female</option>
+                              <option value="OTHER">Other</option>
+                            </select>
+                          </div>
+                        </div>
+
+                        {/* Contact */}
+                        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px" }}>
+                          <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+                            <label style={{ fontSize: "12px", fontWeight: 700, color: "var(--text-secondary)" }}>Phone</label>
+                            <input name="phone" type="tel" placeholder="+63 912 345 6789" style={inputStyle} onFocus={onFocus} onBlur={onBlur} />
+                          </div>
+                          <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+                            <label style={{ fontSize: "12px", fontWeight: 700, color: "var(--text-secondary)" }}>Email</label>
+                            <input name="email" type="email" placeholder="juan@example.com" style={inputStyle} onFocus={onFocus} onBlur={onBlur} />
+                          </div>
+                        </div>
+
+                        {/* Address */}
+                        <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                          <div style={{ fontSize: "11px", fontWeight: 800, color: "#3b82f6", textTransform: "uppercase", letterSpacing: "0.7px" }}>
+                            Home Address <span style={{ fontWeight: 500, color: "#94a3b8", textTransform: "none", letterSpacing: 0, fontSize: "11px" }}>(optional)</span>
+                          </div>
+                          <PhAddressSelector onAddressChange={setNewAddress} resetKey={addrKey} compact />
+                          {newAddress && (
+                            <div style={{
+                              background: "#f0fdf4", border: "1px solid #86efac",
+                              borderRadius: "8px", padding: "8px 12px",
+                              fontSize: "12px", color: "#166534",
+                            }}>
+                              <strong>Address:</strong> {newAddress}
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Divider */}
+                        <div style={{ height: "1px", background: "#e8edf4" }} />
+                        <div style={{ fontSize: "11px", fontWeight: 800, color: "#3b82f6", textTransform: "uppercase", letterSpacing: "0.7px" }}>
+                          Appointment Details
+                        </div>
+                      </>
+                    )}
 
                     {/* Date + Time */}
                     <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "14px" }}>
@@ -911,7 +1035,7 @@ export default function AppointmentsPage() {
                       </label>
                       <textarea
                         name="notes"
-                        rows={4}
+                        rows={3}
                         placeholder="Reason for visit, special instructions, reminders..."
                         style={{
                           ...inputStyle,
@@ -986,7 +1110,7 @@ export default function AppointmentsPage() {
                     </button>
                     <button
                       type="button"
-                      onClick={() => setIsDrawerOpen(false)}
+                      onClick={closeDrawer}
                       style={{
                         width: "100%",
                         height: "44px",

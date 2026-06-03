@@ -46,6 +46,56 @@ export async function updateAppointmentStatus(id: string, status: string) {
   revalidatePath("/dashboard");
 }
 
+export async function createAppointmentWithNewPatient(formData: FormData) {
+  const firstName  = (formData.get("firstName")  as string) ?? "";
+  const middleName = (formData.get("middleName") as string) ?? "";
+  const lastName   = (formData.get("lastName")   as string) ?? "";
+  const dateOfBirth     = formData.get("dateOfBirth")     as string;
+  const gender          = formData.get("gender")          as string;
+  const phone           = (formData.get("phone")    as string) ?? "";
+  const email           = (formData.get("email")    as string) ?? "";
+  const address         = (formData.get("address")  as string) ?? "";
+  const appointmentDate = formData.get("appointmentDate") as string;
+  const timeSlot        = formData.get("timeSlot")        as string;
+  const type            = formData.get("type")            as string;
+  const notes           = (formData.get("notes")   as string) ?? "";
+
+  const fullName = [firstName.trim(), middleName.trim(), lastName.trim()]
+    .filter(Boolean)
+    .join(" ");
+
+  let patient: any = null;
+  if (email.trim()) {
+    patient = await prisma.patient.findFirst({ where: { email: email.trim() } });
+  }
+  if (!patient) {
+    patient = await prisma.patient.create({
+      data: {
+        name:        fullName,
+        email:       email.trim()   || null,
+        phone:       phone.trim()   || null,
+        dateOfBirth: new Date(dateOfBirth),
+        gender:      gender as any,
+        address:     address || null,
+      },
+    });
+  }
+
+  await prisma.appointment.create({
+    data: {
+      patientId:       patient.id,
+      doctorId:        DOCTOR_ID,
+      appointmentDate: new Date(appointmentDate),
+      timeSlot,
+      type,
+      notes: notes.trim() || null,
+    },
+  });
+
+  revalidatePath("/dashboard/appointments");
+  revalidatePath("/dashboard");
+}
+
 export async function getUpcomingAppointments(limit = 5) {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
