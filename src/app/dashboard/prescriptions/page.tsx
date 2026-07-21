@@ -159,13 +159,13 @@ export default function PrescriptionsPage() {
         <div
           style={{
             display: "grid",
-            gridTemplateColumns: "1.5fr 1fr 1.5fr 1fr 0.6fr",
+            gridTemplateColumns: "1.5fr 1fr 1.5fr 1fr 110px 80px",
             padding: "13px 24px",
             background: "#f8fafc",
             borderBottom: "1px solid #e8edf4",
           }}
         >
-          {["Patient", "Doctor", "Diagnosis", "Date Issued", "Actions"].map((h) => (
+          {["Patient", "Doctor", "Diagnosis", "Date Issued", "Status", ""].map((h) => (
             <div
               key={h}
               style={{
@@ -211,7 +211,7 @@ export default function PrescriptionsPage() {
                 key={pres.id}
                 style={{
                   display: "grid",
-                  gridTemplateColumns: "1.5fr 1fr 1.5fr 1fr 0.6fr",
+                  gridTemplateColumns: "1.5fr 1fr 1.5fr 1fr 110px 80px",
                   padding: "16px 24px",
                   alignItems: "center",
                   borderBottom:
@@ -249,6 +249,19 @@ export default function PrescriptionsPage() {
                 >
                   {dateStr}
                 </div>
+                {/* Status badge */}
+                <div style={{ display: "flex", alignItems: "center" }}>
+                  {pres.dispense ? (
+                    <span style={{ padding: "3px 10px", borderRadius: "99px", background: "#dcfce7", color: "#16a34a", fontSize: "11.5px", fontWeight: 700 }}>
+                      ✓ Dispensed
+                    </span>
+                  ) : (
+                    <span style={{ padding: "3px 10px", borderRadius: "99px", background: "#fef3c7", color: "#d97706", fontSize: "11.5px", fontWeight: 700 }}>
+                      Pending
+                    </span>
+                  )}
+                </div>
+
                 <div style={{ textAlign: "right" }}>
                   <Link
                     href={`/dashboard/prescriptions/${pres.id}`}

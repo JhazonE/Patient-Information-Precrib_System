@@ -1,6 +1,7 @@
 import DashboardLayout from "@/presentation/layouts/DashboardLayout";
 import { getPatientById } from "@/application/actions/patientActions";
 import { getPatientPrescriptions } from "@/application/actions/prescriptionActions";
+import { getPatientLabRequests } from "@/application/actions/laboratoryActions";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 
@@ -13,9 +14,10 @@ export default async function PatientDetailPage({
 }) {
   const { id } = await params;
 
-  const [patient, prescriptions] = await Promise.all([
+  const [patient, prescriptions, labRequests] = await Promise.all([
     getPatientById(id),
     getPatientPrescriptions(id),
+    getPatientLabRequests(id),
   ]);
 
   if (!patient) notFound();
@@ -135,6 +137,14 @@ export default async function PatientDetailPage({
             + New Prescription
           </Link>
         </div>
+      </div>
+
+      {/* Quick actions */}
+      <div style={{ display: "flex", gap: "10px", marginBottom: "20px" }}>
+        <Link href={`/dashboard/laboratory/new`}
+          style={{ padding: "9px 18px", borderRadius: "9px", background: "#e0f2fe", color: "#0284c7", fontWeight: 700, fontSize: "13px", textDecoration: "none", border: "1px solid #7dd3fc" }}>
+          + New Lab Request
+        </Link>
       </div>
 
       {/* Info grid + prescriptions */}
@@ -384,6 +394,70 @@ export default async function PatientDetailPage({
             </div>
           )}
         </div>
+      </div>
+
+      {/* Lab Results section */}
+      <div style={{ marginTop: "24px" }}>
+        <h2 style={{ margin: "0 0 16px", fontSize: "16px", fontWeight: 800, color: "var(--text-primary)" }}>
+          Lab Results{" "}
+          <span style={{ fontWeight: 400, color: "var(--text-muted)", fontSize: "14px" }}>
+            ({(labRequests as any[]).length})
+          </span>
+        </h2>
+
+        {(labRequests as any[]).length === 0 ? (
+          <div style={{ background: "var(--card-bg)", borderRadius: "16px", padding: "40px", textAlign: "center", color: "var(--text-muted)", border: "1px solid #e8edf4" }}>
+            <p style={{ fontWeight: 600, marginBottom: "6px" }}>No lab requests yet</p>
+            <p style={{ fontSize: "13px" }}>Create a lab request to start tracking results for this patient.</p>
+          </div>
+        ) : (
+          <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+            {(labRequests as any[]).map((req) => {
+              const statusColors: Record<string, { bg: string; color: string }> = {
+                PENDING:     { bg: "#fef3c7", color: "#d97706" },
+                IN_PROGRESS: { bg: "#dbeafe", color: "#2563eb" },
+                COMPLETED:   { bg: "#dcfce7", color: "#16a34a" },
+                CANCELLED:   { bg: "#f1f5f9", color: "#64748b" },
+              };
+              const s = statusColors[req.status] ?? statusColors.PENDING;
+              const completedResults = req.results.filter((r: any) => r.value);
+              return (
+                <Link key={req.id} href={`/dashboard/laboratory/${req.id}`} style={{ textDecoration: "none" }}>
+                  <div style={{ background: "var(--card-bg)", borderRadius: "14px", padding: "18px 22px", boxShadow: "var(--card-shadow)", border: "1px solid #e8edf4", cursor: "pointer" }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+                      <div>
+                        <div style={{ fontWeight: 700, fontSize: "14px", color: "var(--text-primary)", marginBottom: "4px" }}>
+                          Lab Request — {req.results.length} test{req.results.length !== 1 ? "s" : ""}
+                          {completedResults.length > 0 && <span style={{ marginLeft: "6px", fontSize: "12px", color: "#16a34a", fontWeight: 600 }}>({completedResults.length} with results)</span>}
+                        </div>
+                        <div style={{ fontSize: "12.5px", color: "var(--text-muted)" }}>by {req.doctor.name}{req.doctor.specialty ? ` · ${req.doctor.specialty}` : ""}</div>
+                        {req.results.length > 0 && (
+                          <div style={{ display: "flex", flexWrap: "wrap", gap: "4px", marginTop: "8px" }}>
+                            {req.results.slice(0, 5).map((r: any) => (
+                              <span key={r.id} style={{ padding: "2px 8px", borderRadius: "5px", background: r.value ? "#dcfce7" : "#f1f5f9", color: r.value ? "#16a34a" : "#64748b", fontSize: "11.5px", fontWeight: 600 }}>
+                                {r.test.code}
+                                {r.value ? `: ${r.value}` : ""}
+                              </span>
+                            ))}
+                            {req.results.length > 5 && <span style={{ padding: "2px 8px", borderRadius: "5px", background: "#f1f5f9", color: "#64748b", fontSize: "11.5px" }}>+{req.results.length - 5}</span>}
+                          </div>
+                        )}
+                      </div>
+                      <div style={{ textAlign: "right", flexShrink: 0 }}>
+                        <div style={{ fontSize: "12px", color: "var(--text-muted)", marginBottom: "6px" }}>
+                          {new Date(req.createdAt).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" })}
+                        </div>
+                        <span style={{ padding: "3px 10px", borderRadius: "99px", background: s.bg, color: s.color, fontSize: "11.5px", fontWeight: 700 }}>
+                          {req.status.replace("_", " ")}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </Link>
+              );
+            })}
+          </div>
+        )}
       </div>
     </DashboardLayout>
   );

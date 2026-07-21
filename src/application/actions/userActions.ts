@@ -9,7 +9,7 @@ export type UserRow = {
   username: string;
   name: string;
   email: string | null;
-  role: "ADMIN" | "DOCTOR" | "STAFF";
+  role: "ADMIN" | "DOCTOR" | "STAFF" | "LAB_TECH";
   isActive: boolean;
   createdAt: Date;
   lastLoginAt: Date | null;
@@ -36,7 +36,7 @@ export async function createUser(data: {
   name: string;
   email?: string;
   password: string;
-  role: "ADMIN" | "DOCTOR" | "STAFF";
+  role: "ADMIN" | "DOCTOR" | "STAFF" | "LAB_TECH";
 }): Promise<{ error?: string }> {
   try {
     const existing = await prisma.user.findUnique({ where: { username: data.username } });
@@ -67,7 +67,7 @@ export async function updateUser(
     name?: string;
     email?: string;
     password?: string;
-    role?: "ADMIN" | "DOCTOR" | "STAFF";
+    role?: "ADMIN" | "DOCTOR" | "STAFF" | "LAB_TECH";
     isActive?: boolean;
   }
 ): Promise<{ error?: string }> {

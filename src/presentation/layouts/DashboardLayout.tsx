@@ -13,6 +13,9 @@ import {
   ShieldIcon,
   ClipboardIcon,
   CalendarIcon,
+  PackageIcon,
+  FlaskIcon,
+  StethoscopeIcon,
 } from "@/presentation/components/icons";
 import Logo from "@/presentation/components/Logo";
 import LogoutButton from "@/presentation/components/LogoutButton";
@@ -29,9 +32,17 @@ const NAV_GROUPS = [
   {
     group: "PATIENTS",
     items: [
-      { label: "All Patients",    href: "/dashboard/patients",       icon: UsersIcon     },
-      { label: "Appointments",   href: "/dashboard/appointments",   icon: CalendarIcon  },
-      { label: "Prescriptions",  href: "/dashboard/prescriptions",  icon: ClipboardIcon },
+      { label: "All Patients",   href: "/dashboard/patients",      icon: UsersIcon        },
+      { label: "Doctors",        href: "/dashboard/doctors",       icon: StethoscopeIcon },
+      { label: "Appointments",   href: "/dashboard/appointments",  icon: CalendarIcon    },
+      { label: "Prescriptions",  href: "/dashboard/prescriptions", icon: ClipboardIcon   },
+      { label: "Laboratory",     href: "/dashboard/laboratory",    icon: FlaskIcon       },
+    ],
+  },
+  {
+    group: "PHARMACY",
+    items: [
+      { label: "Inventory",      href: "/dashboard/inventory",     icon: PackageIcon   },
     ],
   },
   {

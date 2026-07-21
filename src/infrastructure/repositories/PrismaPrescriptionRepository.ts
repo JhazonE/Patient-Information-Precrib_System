@@ -17,7 +17,8 @@ export class PrismaPrescriptionRepository implements IPrescriptionRepository {
     return await prisma.prescription.findMany({
       include: {
         patient: { select: { id: true, name: true } },
-        doctor: { select: { id: true, name: true, specialty: true } },
+        doctor:  { select: { id: true, name: true, specialty: true } },
+        dispense: { select: { id: true, dispensedBy: true, createdAt: true } },
       },
       orderBy: { createdAt: 'desc' },
     });

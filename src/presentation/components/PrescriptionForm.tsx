@@ -1,15 +1,147 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect, useCallback } from "react";
 import { Button, Separator } from "@heroui/react";
-import { PlusIcon, TrashIcon } from "@/presentation/components/icons";
+import { PlusIcon, TrashIcon, PillIcon } from "@/presentation/components/icons";
 import { createPrescription } from "@/application/actions/prescriptionActions";
+import { searchMedicines } from "@/application/actions/inventoryActions";
 import { Patient, MedicationItem } from "@/domain/entities";
 import { useRouter } from "next/navigation";
 import { useSnackbar, Snackbar } from "@/presentation/components/Snackbar";
 import { Spinner } from "@/presentation/components/Skeleton";
 
-// ─── Medication name input with localStorage autocomplete ────────────────────
+type MedSuggestion = {
+  id: string; name: string; genericName: string | null;
+  formulation: string; strength: string; unit: string;
+  stock: number; reorderLevel: number;
+};
+
+// ─── Inventory-backed medicine search input ───────────────────────────────────
+function InventoryMedicineSearch({
+  value, medicineId, onSelect, onClear,
+}: {
+  value: string;
+  medicineId?: string;
+  onSelect: (med: MedSuggestion) => void;
+  onClear: () => void;
+}) {
+  const [query, setQuery] = useState(value);
+  const [results, setResults] = useState<MedSuggestion[]>([]);
+  const [open, setOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const wrapRef = useRef<HTMLDivElement>(null);
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // sync external value when row resets
+  useEffect(() => { if (!medicineId) setQuery(value); }, [value, medicineId]);
+
+  useEffect(() => {
+    function onClickOutside(e: MouseEvent) {
+      if (wrapRef.current && !wrapRef.current.contains(e.target as Node)) setOpen(false);
+    }
+    document.addEventListener("mousedown", onClickOutside);
+    return () => document.removeEventListener("mousedown", onClickOutside);
+  }, []);
+
+  const doSearch = useCallback((q: string) => {
+    if (q.trim().length < 1) { setResults([]); setOpen(false); return; }
+    setLoading(true);
+    searchMedicines(q).then((res) => {
+      setResults(res as MedSuggestion[]);
+      setOpen(res.length > 0);
+      setLoading(false);
+    });
+  }, []);
+
+  function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const q = e.target.value;
+    setQuery(q);
+    if (medicineId) onClear(); // clear link if user starts typing again
+    if (timerRef.current) clearTimeout(timerRef.current);
+    timerRef.current = setTimeout(() => doSearch(q), 250);
+  }
+
+  function handleSelect(med: MedSuggestion) {
+    setQuery(med.name);
+    setOpen(false);
+    onSelect(med);
+  }
+
+  const linked = !!medicineId;
+
+  return (
+    <div ref={wrapRef} style={{ position: "relative" }}>
+      <input
+        value={query}
+        onChange={handleChange}
+        onFocus={e => {
+          if (!linked && query.trim()) doSearch(query);
+          e.currentTarget.style.borderColor = linked ? "#4ade80" : "#93c5fd";
+        }}
+        onBlur={e => { e.currentTarget.style.borderColor = linked ? "#86efac" : "#e2e8f0"; }}
+        required
+        autoComplete="off"
+        placeholder="Search inventory…"
+        style={{
+          height: "38px", width: "100%", borderRadius: "8px",
+          border: `1px solid ${linked ? "#86efac" : "#e2e8f0"}`,
+          background: linked ? "#f0fdf4" : "#f8fafc",
+          padding: "0 36px 0 12px", fontSize: "13px", outline: "none",
+          transition: "border-color 0.2s, background 0.2s",
+          boxSizing: "border-box",
+        }}
+      />
+      {/* status icon */}
+      <div style={{ position: "absolute", right: "10px", top: "50%", transform: "translateY(-50%)", pointerEvents: linked ? "auto" : "none" }}>
+        {loading ? (
+          <Spinner size={13} color="#94a3b8" />
+        ) : linked ? (
+          <button type="button" onClick={onClear} title="Unlink medicine"
+            style={{ border: "none", background: "none", cursor: "pointer", color: "#16a34a", padding: 0, fontWeight: 800, fontSize: "16px", lineHeight: 1, display: "flex" }}>
+            ✓
+          </button>
+        ) : (
+          <PillIcon width={13} height={13} style={{ color: "#94a3b8" }} />
+        )}
+      </div>
+
+      {/* Dropdown */}
+      {open && results.length > 0 && (
+        <div style={{
+          position: "absolute", top: "calc(100% + 4px)", left: 0, right: 0,
+          background: "#fff", border: "1px solid #e2e8f0", borderRadius: "10px",
+          boxShadow: "0 8px 28px rgba(0,0,0,0.13)", zIndex: 200, maxHeight: "240px", overflowY: "auto",
+        }}>
+          <div style={{ padding: "6px 12px 4px", fontSize: "10px", fontWeight: 800, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.8px", borderBottom: "1px solid #f1f5f9" }}>
+            Inventory
+          </div>
+          {results.map((r) => {
+            const low = r.stock > 0 && r.stock <= r.reorderLevel;
+            const out = r.stock === 0;
+            return (
+              <div key={r.id} onMouseDown={() => handleSelect(r)}
+                style={{ padding: "9px 14px", fontSize: "13px", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "space-between", gap: "8px", borderBottom: "1px solid #f8fafc" }}
+                onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = "#f0f9ff"}
+                onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = "transparent"}>
+                <div>
+                  <div style={{ fontWeight: 700, color: "#1e293b" }}>{r.name}</div>
+                  <div style={{ fontSize: "11.5px", color: "#64748b" }}>{r.formulation} · {r.strength}</div>
+                </div>
+                <span style={{ padding: "2px 8px", borderRadius: "99px", fontSize: "11px", fontWeight: 700, flexShrink: 0,
+                  background: out ? "#fee2e2" : low ? "#fef3c7" : "#dcfce7",
+                  color: out ? "#dc2626" : low ? "#d97706" : "#16a34a" }}>
+                  {out ? "Out" : `${r.stock} ${r.unit}`}
+                </span>
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── Legacy localStorage autocomplete (kept for manually typed non-inventory names) ─
 function MedicationNameInput({
   value,
   onChange,
@@ -168,11 +300,14 @@ function MedicationNameInput({
 }
 
 // ─── Main form ───────────────────────────────────────────────────────────────
+type DoctorOption = { id: string; name: string; specialty: string | null };
+
 interface PrescriptionFormProps {
   patients: Patient[];
+  doctors: DoctorOption[];
 }
 
-export default function PrescriptionForm({ patients }: PrescriptionFormProps) {
+export default function PrescriptionForm({ patients, doctors }: PrescriptionFormProps) {
   const router = useRouter();
   const { showSnack, dismiss, snack } = useSnackbar();
   const [medications, setMedications] = useState<MedicationItem[]>([
@@ -191,13 +326,30 @@ export default function PrescriptionForm({ patients }: PrescriptionFormProps) {
     setMedications(medications.filter((_, i) => i !== index));
   };
 
-  const updateMedication = (
-    index: number,
-    field: keyof MedicationItem,
-    value: string
-  ) => {
+  const updateMedication = (index: number, field: keyof MedicationItem, value: string) => {
     const updated = [...medications];
-    updated[index][field] = value;
+    (updated[index] as any)[field] = value;
+    setMedications(updated);
+  };
+
+  const selectInventoryMedicine = (index: number, med: MedSuggestion) => {
+    const updated = [...medications];
+    updated[index] = {
+      ...updated[index],
+      name: med.name,
+      genericName: med.genericName ?? undefined,
+      formulation: med.formulation,
+      strength: med.strength,
+      unit: med.unit,
+      medicineId: med.id,
+      dosage: updated[index].dosage || med.strength,
+    };
+    setMedications(updated);
+  };
+
+  const clearInventoryLink = (index: number) => {
+    const updated = [...medications];
+    updated[index] = { ...updated[index], medicineId: undefined, genericName: undefined, formulation: undefined, strength: undefined, unit: undefined };
     setMedications(updated);
   };
 
@@ -337,6 +489,34 @@ export default function PrescriptionForm({ patients }: PrescriptionFormProps) {
                 </select>
               </div>
 
+              <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+                <label style={{ fontSize: "12.5px", fontWeight: 700, color: "var(--text-secondary)" }}>
+                  Attending Doctor <span style={{ color: "#ef4444" }}>*</span>
+                </label>
+                {doctors.length === 0 ? (
+                  <div style={{ padding: "12px 14px", borderRadius: 10, background: "#fffbeb", border: "1px solid #fde68a", fontSize: 13, color: "#92400e" }}>
+                    No doctors registered yet.{" "}
+                    <a href="/dashboard/doctors" style={{ color: "#d97706", fontWeight: 700, textDecoration: "underline" }}>Register a doctor</a>{" "}
+                    before creating a prescription.
+                  </div>
+                ) : (
+                  <select
+                    name="doctorId"
+                    required
+                    style={{ height: "42px", borderRadius: "10px", border: "1px solid #e2e8f0", background: "#f8fafc", padding: "0 14px", fontSize: "14px", color: "var(--text-primary)", outline: "none", transition: "all 0.2s" }}
+                    onFocus={e => { e.currentTarget.style.borderColor = "#93c5fd"; e.currentTarget.style.background = "#fff"; }}
+                    onBlur={e => { e.currentTarget.style.borderColor = "#e2e8f0"; e.currentTarget.style.background = "#f8fafc"; }}
+                  >
+                    <option value="">Select attending doctor...</option>
+                    {doctors.map(d => (
+                      <option key={d.id} value={d.id}>
+                        {d.name}{d.specialty ? ` — ${d.specialty}` : ""}
+                      </option>
+                    ))}
+                  </select>
+                )}
+              </div>
+
               <div
                 style={{ display: "flex", flexDirection: "column", gap: "6px" }}
               >
@@ -417,7 +597,7 @@ export default function PrescriptionForm({ patients }: PrescriptionFormProps) {
                     color: "var(--text-muted)",
                   }}
                 >
-                  Previously used medicines appear as suggestions while typing.
+                  Search from inventory catalog — stock level shown per result.
                 </p>
               </div>
               <button
@@ -464,28 +644,23 @@ export default function PrescriptionForm({ patients }: PrescriptionFormProps) {
                       alignItems: "end",
                     }}
                   >
-                    {/* Medicine Name — with autocomplete */}
-                    <div
-                      style={{
-                        display: "flex",
-                        flexDirection: "column",
-                        gap: "6px",
-                      }}
-                    >
-                      <label
-                        style={{
-                          fontSize: "11px",
-                          fontWeight: 700,
-                          color: "var(--text-muted)",
-                          textTransform: "uppercase",
-                        }}
-                      >
+                    {/* Medicine Name — inventory search */}
+                    <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+                      <label style={{ fontSize: "11px", fontWeight: 700, color: "var(--text-muted)", textTransform: "uppercase" }}>
                         Medicine Name
                       </label>
-                      <MedicationNameInput
+                      <InventoryMedicineSearch
                         value={med.name}
-                        onChange={(v) => updateMedication(index, "name", v)}
+                        medicineId={med.medicineId}
+                        onSelect={(m) => selectInventoryMedicine(index, m)}
+                        onClear={() => clearInventoryLink(index)}
                       />
+                      {med.medicineId && (
+                        <div style={{ fontSize: "11px", color: "#16a34a", display: "flex", alignItems: "center", gap: "4px", marginTop: "2px" }}>
+                          <span>✓</span>
+                          <span>{med.formulation} · {med.strength}{med.genericName ? ` (${med.genericName})` : ""}</span>
+                        </div>
+                      )}
                     </div>
 
                     {/* Dosage */}

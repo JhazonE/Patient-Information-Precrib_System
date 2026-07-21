@@ -12,11 +12,12 @@ import { useSnackbar, Snackbar } from "@/presentation/components/Snackbar";
 import { UserRowSkeleton, Spinner } from "@/presentation/components/Skeleton";
 
 /* ── helpers ────────────────────────────────────────────────── */
-const ROLE_META = {
-  ADMIN:  { label: "Admin",  bg: "#fef2f2", color: "#dc2626" },
-  DOCTOR: { label: "Doctor", bg: "#eff6ff", color: "#2563eb" },
-  STAFF:  { label: "Staff",  bg: "#f5f3ff", color: "#7c3aed" },
-} as const;
+const ROLE_META: Record<string, { label: string; bg: string; color: string }> = {
+  ADMIN:    { label: "Admin",     bg: "#fef2f2", color: "#dc2626" },
+  DOCTOR:   { label: "Doctor",   bg: "#eff6ff", color: "#2563eb" },
+  STAFF:    { label: "Staff",    bg: "#f5f3ff", color: "#7c3aed" },
+  LAB_TECH: { label: "Lab Tech", bg: "#f0fdf4", color: "#16a34a" },
+};
 
 const AVATAR_COLORS = [
   "linear-gradient(135deg,#3b82f6,#1d4ed8)",
@@ -30,7 +31,7 @@ const avatarBg  = (id: string) => AVATAR_COLORS[id.charCodeAt(0) % AVATAR_COLORS
 const initials  = (name: string) => name.split(" ").map(w => w[0]).slice(0, 2).join("").toUpperCase();
 const fmtDate   = (d: Date) => new Date(d).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
 
-type Role = "ADMIN" | "DOCTOR" | "STAFF";
+type Role = "ADMIN" | "DOCTOR" | "STAFF" | "LAB_TECH";
 interface FormState { name: string; username: string; email: string; password: string; role: Role }
 const EMPTY: FormState = { name: "", username: "", email: "", password: "", role: "STAFF" };
 
@@ -200,6 +201,7 @@ function Drawer({
             >
               <option value="STAFF">Staff — General access</option>
               <option value="DOCTOR">Doctor — Clinical access</option>
+              <option value="LAB_TECH">Lab Tech — Laboratory access</option>
               <option value="ADMIN">Admin — Full system access</option>
             </select>
           </Field>

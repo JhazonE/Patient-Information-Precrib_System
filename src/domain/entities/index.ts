@@ -25,4 +25,10 @@ export interface MedicationItem {
   dosage: string;
   frequency: string;
   duration: string;
+  // optional inventory link
+  medicineId?: string;
+  genericName?: string;
+  formulation?: string;
+  strength?: string;
+  unit?: string;
 }

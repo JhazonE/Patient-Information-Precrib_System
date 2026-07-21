@@ -2,8 +2,7 @@
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 generator client {
-  provider        = "prisma-client-js"
-  previewFeatures = ["driverAdapters"]
+  provider = "prisma-client-js"
 }
 
 datasource db {
@@ -21,6 +20,7 @@ model Patient {
   address       String?
   prescriptions Prescription[]
   appointments  Appointment[]
+  labRequests   LabRequest[]
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @updatedAt
 }
@@ -30,8 +30,10 @@ model Doctor {
   name          String
   email         String         @unique
   specialty     String?
+  licenseNumber String?
   prescriptions Prescription[]
   appointments  Appointment[]
+  labRequests   LabRequest[]
   createdAt     DateTime       @default(now())
 }
 
@@ -57,15 +59,36 @@ enum AppointmentStatus {
 }
 
 model Prescription {
-  id           String   @id @default(cuid())
-  patient      Patient  @relation(fields: [patientId], references: [id])
+  id           String    @id @default(cuid())
+  patient      Patient   @relation(fields: [patientId], references: [id])
   patientId    String
-  doctor       Doctor   @relation(fields: [doctorId], references: [id])
+  doctor       Doctor    @relation(fields: [doctorId], references: [id])
   doctorId     String
   diagnosis    String
-  medications  Json     // Array of { name, dosage, frequency, duration }
+  medications  Json      // Array of { name, genericName?, formulation?, strength?, unit?, dosage, frequency, duration, medicineId? }
   instructions String?
-  createdAt    DateTime @default(now())
+  dispense     Dispense?
+  createdAt    DateTime  @default(now())
+}
+
+model Dispense {
+  id             String         @id @default(cuid())
+  prescription   Prescription   @relation(fields: [prescriptionId], references: [id])
+  prescriptionId String         @unique
+  dispensedBy    String?
+  notes          String?
+  items          DispenseItem[]
+  createdAt      DateTime       @default(now())
+}
+
+model DispenseItem {
+  id         String   @id @default(cuid())
+  dispense   Dispense @relation(fields: [dispenseId], references: [id])
+  dispenseId String
+  medicine   Medicine @relation(fields: [medicineId], references: [id])
+  medicineId String
+  quantity   Int
+  unit       String
 }
 
 enum Gender {
@@ -78,6 +101,84 @@ enum Role {
   ADMIN
   DOCTOR
   STAFF
+  LAB_TECH
+}
+
+// ─── Inventory ───────────────────────────────────────────────────────────────
+
+model Medicine {
+  id           String    @id @default(cuid())
+  name         String
+  genericName  String?
+  formulation  String    // tablet, capsule, syrup, injection, cream, etc.
+  strength     String    // e.g. "500mg", "250mg/5ml", "10mg/ml"
+  unit         String    // tablet, ml, vial, sachet, etc.
+  category     String?   // antibiotic, analgesic, antihypertensive, etc.
+  stock        Int       @default(0)
+  reorderLevel Int       @default(10)
+  price        Float?
+  supplier     String?
+  expiryDate   DateTime?
+  batchNumber  String?
+  description  String?
+  isActive      Boolean        @default(true)
+  dispenseItems DispenseItem[]
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+}
+
+// ─── Laboratory ───────────────────────────────────────────────────────────────
+
+model LabTest {
+  id          String      @id @default(cuid())
+  name        String
+  code        String      @unique   // e.g. CBC, UA, FBS, LFT
+  category    String                // Hematology, Chemistry, Urinalysis, Microbiology
+  description String?
+  normalRange String?
+  unit        String?
+  price       Float?
+  isActive    Boolean     @default(true)
+  results     LabResult[]
+  createdAt   DateTime    @default(now())
+}
+
+model LabRequest {
+  id            String      @id @default(cuid())
+  patient       Patient     @relation(fields: [patientId], references: [id])
+  patientId     String
+  doctor        Doctor      @relation(fields: [doctorId], references: [id])
+  doctorId      String
+  requestedById String?
+  priority      String      @default("ROUTINE")  // ROUTINE, URGENT, STAT
+  notes         String?
+  status        LabStatus   @default(PENDING)
+  results       LabResult[]
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+}
+
+model LabResult {
+  id             String     @id @default(cuid())
+  request        LabRequest @relation(fields: [requestId], references: [id])
+  requestId      String
+  test           LabTest    @relation(fields: [testId], references: [id])
+  testId         String
+  value          String?
+  unit           String?
+  normalRange    String?
+  interpretation String?    // NORMAL, HIGH, LOW, CRITICAL
+  remarks        String?
+  performedBy    String?
+  performedAt    DateTime?
+  createdAt      DateTime   @default(now())
+}
+
+enum LabStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
 }
 
 model User {
